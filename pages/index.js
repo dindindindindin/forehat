@@ -20,16 +20,30 @@ function IdeaContainer(props) {
 
     for (let i = 0; i < 3; i++) {
         cards.push(
-            <IdeaCard key={'card' + JSON.stringify(i)} layer={i}/>
+            <IdeaCardWithButton key={'card' + JSON.stringify(i)} layer={i}/>
         );
     }
 
     return <Layout>{cards}</Layout>;
 }
+function IdeaCardWithButton(props){
+    return(
+        <React.Fragment>
+        <IdeaCard {...props} />
+        <IdeaCardButton />
+        </React.Fragment>
+    );
+}
 
+function IdeaCardButton(){
+return(
+    <button>Hello</button>
+);
+}
 
 function IdeaCard(props) {
-    const leftPercentage = JSON.stringify(props.layer * 3.33) + '%';
+    const leftPercentage = JSON.stringify(props.layer * 2) + '%';
+
     const styles = {marginLeft: leftPercentage};
 
     return(
