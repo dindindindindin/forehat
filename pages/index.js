@@ -28,16 +28,22 @@ function IdeaContainer(props) {
 }
 function IdeaCardWithButton(props){
     return(
-        <React.Fragment>
-        <IdeaCard {...props} />
+<Layout.Section>
+          <IdeaCard {...props} />
+          
         <IdeaCardButton />
-        </React.Fragment>
+</Layout.Section>
     );
 }
 
 function IdeaCardButton(){
-return(
-    <button>Hello</button>
+    const styles = {marginLeft: "auto", marginRight: "auto"}
+
+    return(
+        <div style={styles}>
+     
+    <Button size="slim" >Hello</Button>
+</div>
 );
 }
 
@@ -47,13 +53,13 @@ function IdeaCard(props) {
     const styles = {marginLeft: leftPercentage};
 
     return(
-        <Layout.Section>
-            <div className="cardWrap" style={styles}>
-                <Card sectioned>
+
+        <div style={styles}>
+              <Card sectioned>
                     <CollapsibleText/>
                 </Card>
-            </div>
-        </Layout.Section>
+</div>
+
     );
 }
 
