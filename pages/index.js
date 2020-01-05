@@ -13,41 +13,97 @@ import {render} from 'react-dom';
 
 const Index = () => <IdeaContainer/>;
 
+function ideaCreator() {
+    const ideas = [];
+    for (let i = 0; i < 20; i++) {
+        ideas.push(
+            {
+                id: i,
+                title: 'Let\'s test this component. Hello there! ' + JSON.stringify(i),
+                content: () => {
+                    let num = Math.floor(Math.random() * 10) + 5;
+                    let accumulated = "";
+                    for (let i = 0; i < num; i++) {
+                        accumulated += "random text for test "
+                    }
+                    return accumulated;
+                },
+                author: "dincer",
+                likeCount: (Math.floor(Math.random() * 10) + 3),
+                childIdeaCount: (Math.floor(Math.random() * 10)),
+                parentId: () => {
+                    let num = Math.floor(Math.random() * 20);
+                    if (num === i) {
+                        num = null;
+                    } else if (num < 5) {
+                        num = null;
+                    }
+                    return num;
+                }
+
+            }
+        )
+    }
+    return ideas;
+}
 
 function IdeaContainer(props) {
-    const [cards, setCards] = useState([]);
 
-    let tempCards = [];
-    for (let i = 0; i < 3; i++) {
-        tempCards.push(<IdeaCardWithButton key={'card' + JSON.stringify(i)} layer={i}/>);
+    const ideas = ideaCreator();
+
+    const parentIdeas = ideas.filter(idea => {
+        return idea.parentId() === null;
+    });
+
+    let initialCards = [];
+
+    let parentIdea;
+
+    for (parentIdea of parentIdeas) {
+        let children = ideas.filter(idea => {
+            return idea.parentId() === parentIdea.id;
+        });
+        initialCards.push(<IdeaCardWithButton key={parentIdea.id} layer={0}
+                                              title={parentIdea.title} content={parentIdea.content()}
+                                              childCount={children.length} handleClick={updateCards}/>
+        );
     }
 
-    function fillCards(){
-        setCards([...cards, ...tempCards])
+    const [cards, setCards] = useState(initialCards);
+
+    const updateCards = (parentId) => {
+
+        let newCards = ideas.filter(idea => {
+            return idea.parentId() === parentId;
+        });
+
+        setCards(cards.splice(parentId, 0, newCards));
     }
 
-    return <Layout>{tempCards}</Layout>;
+    return <Layout>{cards}</Layout>;
 }
 
 function IdeaCardWithButton(props) {
+    const leftPercentage = JSON.stringify(props.layer * 2) + '%';
+
     return (
         <Layout.Section>
-            <IdeaCard {...props} />
-            <IdeaCardButton/>
+            <IdeaCard layer={leftPercentage} title={props.title} content={props.content}/>
+            <IdeaCardButton key={props.key} layer={leftPercentage} childCount={props.childCount}
+                            handleClick={props.handleClick}/>
         </Layout.Section>
     );
 }
 
 function IdeaCard(props) {
-    const leftPercentage = JSON.stringify(props.layer * 2) + '%';
 
-    const styles = {marginLeft: leftPercentage};
+    const styles = {marginLeft: props.layer};
 
     return (
 
         <div style={styles}>
             <Card sectioned>
-                <CollapsibleText/>
+                <CollapsibleText title={props.title} content={props.content}/>
             </Card>
         </div>
 
@@ -55,11 +111,11 @@ function IdeaCard(props) {
 }
 
 function IdeaCardButton(props) {
-    const styles = {display: "flex", justifyContent: "center"};
+    const styles = {display: "flex", justifyContent: "center", marginLeft: props.layer};
 
     return (
         <div style={styles}>
-            <Button size="slim">3 child ideas</Button>
+            <Button size="slim" onClick={props.handleClick(props.key)}>{props.childCount} child ideas</Button>
         </div>
     );
 }
@@ -67,21 +123,10 @@ function IdeaCardButton(props) {
 function CollapsibleText(props) {
     return (
         <TextContainer spacing="tight">
-            <Heading>{exampleText.heading}</Heading>
-            <ShowMore>{exampleText.context(100)}</ShowMore>
+            <Heading>{props.title}</Heading>
+            <ShowMore>{props.content}</ShowMore>
         </TextContainer>
     );
 }
-
-const exampleText = {
-    heading: 'Let\'s test this component. Hello there!',
-    context: (num) => {
-        let accumulated = "";
-        for (let i = 0; i < num; i++) {
-            accumulated += "random text for test "
-        }
-        return accumulated;
-    }
-};
 
 export default Index;
