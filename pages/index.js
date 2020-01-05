@@ -12,7 +12,7 @@ import { render } from "react-dom";
 
 const Index = () => <IdeaContainer />;
 
-function ideaCreator() {
+function dummyDataCreator() {
   const ideas = [];
   for (let i = 0; i < 20; i++) {
     ideas.push({
@@ -48,12 +48,12 @@ class IdeaContainer extends React.Component {
     super(props);
     this.updateCards = this.updateCards.bind(this);
     this.initializeCards = this.initializeCards.bind(this);
-    this.ideas = ideaCreator();
+    this.dummyData = dummyDataCreator();
     this.state = { cards: this.initializeCards() };
   }
 
   initializeCards = () => {
-    let parentIdeas = this.ideas.filter(idea => {
+    let parentIdeas = this.dummyData.filter(idea => {
       return idea.parentId() === null;
     });
 
@@ -61,7 +61,7 @@ class IdeaContainer extends React.Component {
     let initialCards = [];
 
     for (parentIdea of parentIdeas) {
-      let children = this.ideas.filter(idea => {
+      let children = this.dummyData.filter(idea => {
         return idea.parentId() === parentIdea.id;
       });
 
@@ -81,7 +81,7 @@ class IdeaContainer extends React.Component {
   };
 
   updateCards(parentId) {
-    let newCards = this.ideas.filter(idea => {
+    let newCards = this.dummyData.filter(idea => {
       return idea.parentId() === parentId;
     });
 
