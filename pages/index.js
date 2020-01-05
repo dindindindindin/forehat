@@ -47,40 +47,46 @@ function ideaCreator() {
     return ideas;
 }
 
-function IdeaContainer(props) {
+class IdeaContainer extends React.Component {
+    constructor(props) {
+        super(props);
 
-    const ideas = ideaCreator();
+        this.ideas = ideaCreator();
+        this.state = {
+            cards: () => {
+                let parentIdeas = this.ideas.filter(idea => {
+                    return idea.parentId() === null;
+                });
+                console.log("hello");
+                let parentIdea;
+                let initialCards = [];
+                for (parentIdea of parentIdeas) {
+                    console.log(parentIdea.parentId());
+                    let children = this.ideas.filter(idea => {
+                        return idea.parentId() === parentIdea.id;
+                    });
+                    initialCards.push(<IdeaCardWithButton key={parentIdea.id} layer={0}
+                                                          title={parentIdea.title} content={parentIdea.content()}
+                                                          childCount={children.length} handleClick={this.updateCards()}/>
+                    );
+                }
+                 return [...initialCards];
+            }
+        };
+        this.updateCards = this.updateCards.bind(this);
 
-    const parentIdeas = ideas.filter(idea => {
-        return idea.parentId() === null;
-    });
-
-    let initialCards = [];
-
-    let parentIdea;
-
-    for (parentIdea of parentIdeas) {
-        let children = ideas.filter(idea => {
-            return idea.parentId() === parentIdea.id;
-        });
-        initialCards.push(<IdeaCardWithButton key={parentIdea.id} layer={0}
-                                              title={parentIdea.title} content={parentIdea.content()}
-                                              childCount={children.length} handleClick={updateCards}/>
-        );
     }
-
-    const [cards, setCards] = useState(initialCards);
-
-    const updateCards = (parentId) => {
-
-        let newCards = ideas.filter(idea => {
+    updateCards (parentId) {
+        let newCards = this.ideas.filter(idea => {
             return idea.parentId() === parentId;
         });
 
-        setCards(cards.splice(parentId, 0, newCards));
-    }
-
-    return <Layout>{cards}</Layout>;
+        this.setState({cards: this.state.cards.splice(parentId, 0, newCards)});
+    };
+    render(){
+        return(
+        <Layout>{this.state.cards}</Layout>
+    )}
 }
 
 function IdeaCardWithButton(props) {
