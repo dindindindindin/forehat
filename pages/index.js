@@ -39,34 +39,35 @@ class IdeaContainer extends React.Component {
   }
 
   initializeCards = () => {
-    let initialCards = {};
+    let initialCards = [];
 
     this.parentIdeas.map(idea => {
-      initialCards["ideaId"] = (
-        <IdeaCardWithButton
-          key={idea.id}
-          id={idea.id}
-          layer={0}
-          title={idea.title}
-          content={idea.content}
-          childCount={this.childCounts[idea.id]}
-          onClick={this.updateCards}
-        />
-      );
+      initialCards.push({
+        id: idea.id,
+        obj: (
+          <IdeaCardWithButton
+            key={idea.id}
+            id={idea.id}
+            layer={0}
+            title={idea.title}
+            content={idea.content}
+            childCount={this.childCounts[idea.id]}
+            onClick={this.updateCards}
+          />
+        ),
+        likeCount: idea.like_count
+      });
     });
 
     return initialCards;
   };
 
   updateCards(parentId) {
-    /*  let newCards = this.dummyData.filter(idea => {
-    return idea.parentId() === parentId;
-  });
+    /*
 
-  this.setState({ cards: this.state.cards.splice(parentId, 0, newCards) });
-*/
+    */
 
-    const newCards = async ({ req, query }) => {
+    const newIdeas = async ({ req, query }) => {
       const protocol = req
         ? '${req.headers["x-forwarded-proto"]}:'
         : location.protocol;
@@ -77,6 +78,23 @@ class IdeaContainer extends React.Component {
       const json = await res.json();
       return json;
     };
+
+    const newCards = [];
+    let idea;
+    for (idea in newIdeas.ideas) {
+      newCards.push(idea);
+    }
+
+    const insertIndex = this.state.cards.find(
+      element => element.id === parentId
+    );
+
+    const updatedCards = this.state.cards.splice(
+      insertIndex,
+      0,
+      newCards.ideas
+    );
+    this.setState({ cards: updatedCards });
   }
 
   render() {
