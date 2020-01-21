@@ -12,9 +12,16 @@ import { render } from "react-dom";
 import fetch from "isomorphic-unfetch";
 import Link from "next/link";
 
-const Index = ({ ideas, childCount }) => (
-  <IdeaContainer parentIdeas={{ ideas }} childCount={{ childCount }} />
-);
+const Index = ({ ideas, childCount }) => {
+  const parsedIdeas = JSON.parse({ ideas });
+  const parsedChildCount = JSON.parse({ childCount });
+  return (
+    <IdeaContainer
+      parentIdeas={{ parsedIdeas }}
+      childCount={{ parsedChildCount }}
+    />
+  );
+};
 
 Index.getInitialProps = async ({ req, query }) => {
   const protocol = req
@@ -33,15 +40,15 @@ class IdeaContainer extends React.Component {
     super(props);
     this.updateCards = this.updateCards.bind(this);
     this.initializeCards = this.initializeCards.bind(this);
-    this.parentIdeas = props.ideas;
-    this.childCounts = props.childCounts;
+    this.parentIdeas = JSON.parse(props.ideas);
+    this.childCounts = JSON.parse(props.childCounts);
     this.state = { cards: this.initializeCards() };
   }
 
   initializeCards = () => {
     let initialCards = [];
-
-    this.parentIdeas.map(idea => {
+    let idea;
+    for (idea in this.parentIdeas) {
       initialCards.push({
         id: idea.id,
         obj: (
@@ -57,16 +64,12 @@ class IdeaContainer extends React.Component {
         ),
         likeCount: idea.like_count
       });
-    });
-
+    }
+    initialCards.sort((a, b) => b.likeCount - a.likeCount);
     return initialCards;
   };
 
-  updateCards(parentId) {
-    /*
-
-    */
-
+  updateCards = parentId => {
     const newIdeas = async ({ req, query }) => {
       const protocol = req
         ? '${req.headers["x-forwarded-proto"]}:'
@@ -82,20 +85,32 @@ class IdeaContainer extends React.Component {
     const newCards = [];
     let idea;
     for (idea in newIdeas.ideas) {
-      newCards.push(idea);
+      newCards.push({
+        id: idea.id,
+        obj: (
+          <IdeaCardWithButton
+            key={idea.id}
+            id={idea.id}
+            layer={0}
+            title={idea.title}
+            content={idea.content}
+            childCount={newIdeas.childCounts[idea.id]}
+            onClick={this.updateCards}
+          />
+        ),
+        likeCount: idea.like_count
+      });
     }
+
+    newCards.sort((a, b) => b.likeCount - a.likeCount);
 
     const insertIndex = this.state.cards.find(
       element => element.id === parentId
     );
 
-    const updatedCards = this.state.cards.splice(
-      insertIndex,
-      0,
-      newCards.ideas
-    );
+    const updatedCards = this.state.cards.splice(insertIndex, 0, newCards);
     this.setState({ cards: updatedCards });
-  }
+  };
 
   render() {
     return <Layout>{this.state.cards}</Layout>;
@@ -108,6 +123,7 @@ function IdeaCardWithButton(props) {
   return (
     <Layout.Section>
       <IdeaCard
+        id={props.id}
         layer={leftPercentage}
         title={props.title}
         content={props.content}
