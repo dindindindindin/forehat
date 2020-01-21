@@ -30,11 +30,11 @@ exports.up = function(db, callback) {
         type: "string",
         length: 50
       },
-      context: {
+      content: {
         type: "string",
         length: 300
       },
-      likeCount: {
+      like_count: {
         type: "int",
         length: 5
       },

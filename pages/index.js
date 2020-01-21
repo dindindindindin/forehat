@@ -9,83 +9,74 @@ import {
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
 import { render } from "react-dom";
+import fetch from "isomorphic-unfetch";
+import Link from "next/link";
 
-const Index = () => <IdeaContainer />;
+const Index = ({ ideas, childCount }) => (
+  <IdeaContainer parentIdeas={{ ideas }} childCount={{ childCount }} />
+);
 
-function dummyDataCreator() {
-  const ideas = [];
-  for (let i = 0; i < 20; i++) {
-    ideas.push({
-      id: i,
-      title: "Let's test this component. Hello there! " + JSON.stringify(i),
-      content: () => {
-        let num = Math.floor(Math.random() * 10) + 5;
-        let accumulated = "";
-        for (let i = 0; i < num; i++) {
-          accumulated += "random text for test ";
-        }
-        return accumulated;
-      },
-      author: "dincer",
-      likeCount: Math.floor(Math.random() * 10) + 3,
-      childIdeaCount: Math.floor(Math.random() * 10),
-      parentId: () => {
-        let num = Math.floor(Math.random() * 20);
-        if (num === i) {
-          num = null;
-        } else if (num < 5) {
-          num = null;
-        }
-        return num;
-      }
-    });
-  }
-  return ideas;
-}
+Index.getInitialProps = async ({ req, query }) => {
+  const protocol = req
+    ? '${req.headers["x-forwarded-proto"]}:'
+    : location.protocol;
+  const host = req ? req.headers["x-forwarded-host"] : location.host;
+  const pageRequest =
+    "${protocol}//${host}/api/ideas?parent=${query.parentId || null}";
+  const res = await fetch(pageRequest);
+  const json = await res.json();
+  return json;
+};
 
 class IdeaContainer extends React.Component {
   constructor(props) {
     super(props);
     this.updateCards = this.updateCards.bind(this);
     this.initializeCards = this.initializeCards.bind(this);
-    this.dummyData = dummyDataCreator();
+    this.parentIdeas = props.ideas;
+    this.childCounts = props.childCounts;
     this.state = { cards: this.initializeCards() };
   }
 
   initializeCards = () => {
-    let parentIdeas = this.dummyData.filter(idea => {
-      return idea.parentId() === null;
-    });
+    let initialCards = {};
 
-    let parentIdea;
-    let initialCards = [];
-
-    for (parentIdea of parentIdeas) {
-      let children = this.dummyData.filter(idea => {
-        return idea.parentId() === parentIdea.id;
-      });
-
-      initialCards.push(
+    this.parentIdeas.map(idea => {
+      initialCards["ideaId"] = (
         <IdeaCardWithButton
-          key={parentIdea.id}
-          id={parentIdea.id}
+          key={idea.id}
+          id={idea.id}
           layer={0}
-          title={parentIdea.title}
-          content={parentIdea.content()}
-          childCount={children.length}
+          title={idea.title}
+          content={idea.content}
+          childCount={this.childCounts[idea.id]}
           onClick={this.updateCards}
         />
       );
-    }
+    });
+
     return initialCards;
   };
 
   updateCards(parentId) {
-    let newCards = this.dummyData.filter(idea => {
-      return idea.parentId() === parentId;
-    });
+    /*  let newCards = this.dummyData.filter(idea => {
+    return idea.parentId() === parentId;
+  });
 
-    this.setState({ cards: this.state.cards.splice(parentId, 0, newCards) });
+  this.setState({ cards: this.state.cards.splice(parentId, 0, newCards) });
+*/
+
+    const newCards = async ({ req, query }) => {
+      const protocol = req
+        ? '${req.headers["x-forwarded-proto"]}:'
+        : location.protocol;
+      const host = req ? req.headers["x-forwarded-host"] : location.host;
+      const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId ||
+        null}`;
+      const res = await fetch(pageRequest);
+      const json = await res.json();
+      return json;
+    };
   }
 
   render() {
