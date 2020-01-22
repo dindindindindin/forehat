@@ -42,7 +42,6 @@ exports.up = function(db, callback) {
       parent_id: {
         type: "int",
         unsigned: true,
-        notNull: true,
         length: 10,
         foreignKey: {
           name: "parent_id_fk",
@@ -55,47 +54,14 @@ exports.up = function(db, callback) {
         }
       },
 
-      user_id: {
-        type: "int",
-        unsigned: true,
-        notNull: true,
-        length: 10,
-        foreignKey: {
-          name: "user_id_fk",
-          table: "users",
-          rules: {
-            onDelete: "CASCADE",
-            onUpdate: "RESTRICT"
-          },
-          mapping: "id"
-        }
-      }
-    },
-    callback
-  );
-
-  db.createTable(
-    "users",
-    {
-      id: {
-        type: "int",
-        primaryKey: true,
-        unsigned: true,
-        notNull: true,
-        autoIncrement: true,
-        length: 10
-      },
-      username: {
-        type: "string",
-        length: 20
-      }
+      owner: { type: "string", length: 20 }
     },
     callback
   );
 };
 
 exports.down = function(db, callback) {
-  return null;
+  db.dropTable("ideas", true, callback);
 };
 
 exports._meta = {
