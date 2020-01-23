@@ -14,12 +14,14 @@ module.exports = async (req, res) => {
     );
 
     for (let i = 0; i < childIdeas.length; i++) {
-      if (childIdeas[i].id === parentId) {
+      const childsParentId = parseInt(childIdeas[i].parent_id);
+
+      if (childsParentId === parentId) {
         const childCount = await db.query(
-          escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${idea.id};`
+          escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${childIdeas[i].id};`
         );
 
-        childCounts[idea.id] = childCount[0]["COUNT(*)"];
+        childCounts[childIdeas[i].id] = childCount[0]["COUNT(*)"];
       }
     }
   } else {

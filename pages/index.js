@@ -45,6 +45,7 @@ class IdeaContainer extends React.Component {
         <IdeaCardWithButton
           key={idea.id}
           id={idea.id}
+          generation={0}
           layer={0}
           title={idea.title}
           content={idea.content}
@@ -53,62 +54,48 @@ class IdeaContainer extends React.Component {
         />
       );
     });
-    //    console.log(initialCards);
-    //    initialCards.sort((a, b) => b.likeCount - a.likeCount);
+
+    initialCards.sort((a, b) => b.props.likeCount - a.props.likeCount);
     return initialCards;
   };
 
-  updateCards = async parentId => {
-    console.log(parentId);
-    const protocol = location.protocol;
-    const host = location.host;
-    const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId}`;
-    const res = await fetch(pageRequest);
-    let newIdeas = await res.json();
-    let newCards = [];
+  updateCards = async (parentId, childCount, generation) => {
+    if (childCount > 0) {
+      const protocol = location.protocol;
+      const host = location.host;
+      const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId}`;
+      const res = await fetch(pageRequest);
+      const newIdeas = await res.json();
+      let newCards = [];
 
-    newIdeas.childIdeas.map(idea => {
-      newCards.push(
-        <IdeaCardWithButton
-          key={idea.id}
-          id={idea.id}
-          layer={0}
-          title={idea.title}
-          content={idea.content}
-          childCount={newIdeas.childCounts[idea.id]}
-          onClick={this.updateCards}
-        />
-      );
-    });
+      generation += 1;
 
-    /*      let idea;
-  for (idea in newIdeas.ideas) {
-    newCards.push({
-      id: idea.id,
-      obj: (
-        <IdeaCardWithButton
-          key={idea.id}
-          id={idea.id}
-          layer={0}
-          title={idea.title}
-          content={idea.content}
-          childCount={newIdeas.childCounts[idea.id]}
-          onClick={this.updateCards}
-        />
-      ),
-      likeCount: idea.like_count
-    });
-  }
-*/
-    newCards.sort((a, b) => b.props.likeCount - a.props.likeCount);
+      newIdeas.childIdeas.map(idea => {
+        newCards.push(
+          <IdeaCardWithButton
+            key={idea.id}
+            id={idea.id}
+            generation={generation}
+            layer={0}
+            title={idea.title}
+            content={idea.content}
+            childCount={newIdeas.childCounts[idea.id]}
+            onClick={this.updateCards}
+          />
+        );
+      });
 
-    const insertIndex =
-      1 + this.state.cards.findIndex(element => element.props.id === parentId);
+      newCards.sort((a, b) => b.props.likeCount - a.props.likeCount);
 
-    let cardArr = this.state.cards;
-    cardArr.splice(insertIndex, 0, newCards);
+      const insertIndex =
+        1 +
+        this.state.cards.findIndex(element => element.props.id === parentId);
 
-    this.setState({ cards: cardArr });
+      let cardArr = this.state.cards;
+      cardArr.splice(insertIndex, 0, ...newCards);
+
+      this.setState({ cards: cardArr });
+    }
   };
 
   render() {
@@ -117,18 +104,20 @@ class IdeaContainer extends React.Component {
 }
 
 function IdeaCardWithButton(props) {
-  const leftPercentage = JSON.stringify(props.layer * 2) + "%";
+  const leftPercentage = JSON.stringify(props.generation * 2) + "%";
 
   return (
     <Layout.Section>
       <IdeaCard
         id={props.id}
+        generation={props.generation}
         layer={leftPercentage}
         title={props.title}
         content={props.content}
       />
       <IdeaCardButton
         id={props.id}
+        generation={props.generation}
         layer={leftPercentage}
         childCount={props.childCount}
         onClick={props.onClick}
@@ -161,7 +150,7 @@ function IdeaCardButton(props) {
       <Button
         size="slim"
         onClick={e => {
-          return props.onClick(props.id);
+          return props.onClick(props.id, props.childCount, props.generation);
         }}
       >
         {props.childCount} child ideas

@@ -32,7 +32,7 @@ exports.up = function(db, callback) {
       },
       content: {
         type: "string",
-        length: 300
+        length: 5000
       },
       like_count: {
         type: "int",
