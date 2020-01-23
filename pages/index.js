@@ -24,8 +24,8 @@ Index.getInitialProps = async ({ req, query }) => {
   return json;
 };
 
-function Index({ ideas, childCount }) {
-  return <IdeaContainer parentIdeas={ideas} childCount={childCount} />;
+function Index({ childIdeas, childCounts }) {
+  return <IdeaContainer parentIdeas={childIdeas} childCounts={childCounts} />;
 }
 
 class IdeaContainer extends React.Component {
@@ -34,7 +34,7 @@ class IdeaContainer extends React.Component {
     this.updateCards = this.updateCards.bind(this);
     this.initializeCards = this.initializeCards.bind(this);
     this.parentIdeas = this.props.parentIdeas;
-    this.childCounts = this.props.childCount;
+    this.childCounts = this.props.childCounts;
     this.state = { cards: this.initializeCards() };
   }
 

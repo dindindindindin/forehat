@@ -4,7 +4,7 @@ const escape = require("sql-template-strings");
 module.exports = async (req, res) => {
   let childIdeas;
   let idea;
-  var childCounts = {};
+  let childCounts = {};
 
   if (req.query.parent !== "null") {
     const parentId = parseInt(req.query.parent);
@@ -29,21 +29,14 @@ module.exports = async (req, res) => {
       escape`SELECT * FROM ideas WHERE parent_id IS NULL;`
     );
 
-    childIdeas.map(async ideax => {
+    for (let i = 0; i < childIdeas.length; i++) {
       const childCount = await db.query(
-        escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${ideax.id};`
+        escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${childIdeas[i].id};`
       );
 
-      const ideaId = ideax.id;
-
-      const count = childCount[0]["COUNT(*)"];
-
-      childCounts[ideaId] = count;
-      console.log(JSON.stringify(childCounts));
-    });
+      childCounts[childIdeas[i].id] = childCount[0]["COUNT(*)"];
+    }
   }
-  console.log(JSON.stringify(childCounts));
-  //  const childCounts = JSON.stringify(childCounts);
 
   res.status(200).json({ childIdeas, childCounts });
 };
