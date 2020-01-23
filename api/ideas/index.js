@@ -2,9 +2,9 @@ const db = require("../../db");
 const escape = require("sql-template-strings");
 
 module.exports = async (req, res) => {
-  let childIdeas;
-  let idea;
+  let childIdeas = [];
   let childCounts = {};
+  let idea;
 
   if (req.query.parent !== "null") {
     const parentId = parseInt(req.query.parent);
@@ -13,15 +13,13 @@ module.exports = async (req, res) => {
       escape`SELECT * FROM ideas WHERE parent_id = ${parentId};`
     );
 
-    for (idea in childIdeas) {
-      if (idea.id === parentId) {
+    for (let i = 0; i < childIdeas.length; i++) {
+      if (childIdeas[i].id === parentId) {
         const childCount = await db.query(
           escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${idea.id};`
         );
 
-        const ideaId = idea.id.toString();
-
-        childCounts[ideaId] = parseInt(childCount);
+        childCounts[idea.id] = childCount[0]["COUNT(*)"];
       }
     }
   } else {

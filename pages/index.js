@@ -20,7 +20,6 @@ Index.getInitialProps = async ({ req, query }) => {
 
   const res = await fetch(pageRequest);
   const json = await res.json();
-  console.log(json);
   return json;
 };
 
@@ -31,18 +30,19 @@ function Index({ childIdeas, childCounts }) {
 class IdeaContainer extends React.Component {
   constructor(props) {
     super(props);
-    this.updateCards = this.updateCards.bind(this);
     this.initializeCards = this.initializeCards.bind(this);
-    this.parentIdeas = this.props.parentIdeas;
-    this.childCounts = this.props.childCounts;
+    this.updateCards = this.updateCards.bind(this);
+    this.parentIdeas = props.parentIdeas;
+    this.childCounts = props.childCounts;
     this.state = { cards: this.initializeCards() };
   }
 
   initializeCards = () => {
     console.log(this.parentIdeas);
+    console.log(this.childCounts);
     let initialCards = [];
-    let idea;
-    for (idea in this.parentIdeas) {
+
+    this.parentIdeas.map(idea => {
       initialCards.push(
         <IdeaCardWithButton
           key={idea.id}
@@ -54,8 +54,8 @@ class IdeaContainer extends React.Component {
           onClick={this.updateCards}
         />
       );
-    }
-
+    });
+    console.log(initialCards);
     //    initialCards.sort((a, b) => b.likeCount - a.likeCount);
     return initialCards;
   };
