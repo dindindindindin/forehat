@@ -41,10 +41,6 @@ class IdeaContainer extends React.Component {
     let initialCards = [];
 
     this.parentIdeas.map(idea => {
-      let displayMode = "";
-      if (this.childCounts[idea.id] === 0) displayMode = "none";
-      else displayMode = "flex";
-
       initialCards.push(
         <IdeaCardWithButton
           key={idea.id}
@@ -54,7 +50,6 @@ class IdeaContainer extends React.Component {
           title={idea.title}
           content={idea.content}
           childCount={this.childCounts[idea.id]}
-          displayMode={displayMode}
           onClick={this.updateCards}
         />
       );
@@ -76,9 +71,6 @@ class IdeaContainer extends React.Component {
       generation += 1;
 
       newIdeas.childIdeas.map(idea => {
-        let displayMode = "";
-        if (newIdeas.childCounts[idea.id] === 0) displayMode = "none";
-        else displayMode = "flex";
         newCards.push(
           <IdeaCardWithButton
             key={idea.id}
@@ -88,7 +80,6 @@ class IdeaContainer extends React.Component {
             title={idea.title}
             content={idea.content}
             childCount={newIdeas.childCounts[idea.id]}
-            displayMode={displayMode}
             onClick={this.updateCards}
           />
         );
@@ -129,7 +120,6 @@ function IdeaCardWithButton(props) {
         generation={props.generation}
         layer={leftPercentage}
         childCount={props.childCount}
-        displayMode={props.displayMode}
         onClick={props.onClick}
       />
     </Layout.Section>
@@ -149,7 +139,11 @@ function IdeaCard(props) {
 }
 
 function IdeaCardButton(props) {
-  const [isVisible, setIsVisible] = useState(props.displayMode);
+  let displayMode = "";
+  if (props.childCount === 0) displayMode = "none";
+  else displayMode = "flex";
+
+  const [isVisible, setIsVisible] = useState(displayMode);
 
   const styles = {
     justifyContent: "center",
