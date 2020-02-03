@@ -3,9 +3,9 @@ const escape = require("sql-template-strings");
 
 module.exports = async (req, res) => {
   let childIdeas = [];
-  let likeCounts = {};
+  //  let likeCounts = {};
   let childCounts = {};
-  let userLikes = {};
+  //let userLikes = {};
   let idea;
 
   if (req.query.parent !== "null") {
@@ -22,9 +22,9 @@ module.exports = async (req, res) => {
         const childCount = await db.query(
           escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${childIdeas[i].id};`
         );
-        const likeCount = await db.query(
-          escape`SELECT COUNT(*) FROM likes WHERE ideas_id = ${childIdeas[i].id};`
-        );
+        //        const likeCount = await db.query(
+        //        escape`SELECT COUNT(*) FROM likes WHERE ideas_id = ${childIdeas[i].id};`
+        //    );
 
         if (req.query.user !== undefined) {
           const userId = req.query.user.toString();
@@ -37,7 +37,7 @@ module.exports = async (req, res) => {
         }
 
         childCounts[childIdeas[i].id] = childCount[0]["COUNT(*)"];
-        likeCounts[childIdeas[i].id] = likeCount[0]["COUNT(*)"];
+        //  likeCounts[childIdeas[i].id] = likeCount[0]["COUNT(*)"];
       }
     }
   } else {
@@ -49,9 +49,9 @@ module.exports = async (req, res) => {
       const childCount = await db.query(
         escape`SELECT COUNT(*) FROM ideas WHERE parent_id = ${childIdeas[i].id};`
       );
-      const likeCount = await db.query(
-        escape`SELECT COUNT(*) FROM likes WHERE ideas_id = ${childIdeas[i].id};`
-      );
+      //      const likeCount = await db.query(
+      //      escape`SELECT COUNT(*) FROM likes WHERE ideas_id = ${childIdeas[i].id};`
+      //  );
       if (req.query.user !== undefined) {
         const userId = req.query.user.toString();
         const didUserLike = await db.query(
@@ -64,9 +64,9 @@ module.exports = async (req, res) => {
       }
 
       childCounts[childIdeas[i].id] = childCount[0]["COUNT(*)"];
-      likeCounts[childIdeas[i].id] = likeCount[0]["COUNT(*)"];
+      //likeCounts[childIdeas[i].id] = likeCount[0]["COUNT(*)"];
     }
   }
 
-  res.status(200).json({ childIdeas, childCounts, likeCounts, userLikes });
+  res.status(200).json({ childIdeas, childCounts /*likeCounts, userLikes*/ });
 };

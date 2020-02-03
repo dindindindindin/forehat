@@ -22,13 +22,21 @@ Index.getInitialProps = async ({ req, query }) => {
   return json;
 };
 
-function Index({ childIdeas, childCounts, likeCounts }) {
+function Index({ childIdeas, childCounts /*likeCounts*/ }) {
   return (
     <IdeaContainer
       parentIdeas={childIdeas}
       childCounts={childCounts}
-      likeCounts={likeCounts}
-    />
+    //      likeCounts={likeCounts}
+    >
+      <style global jsx>
+        {`
+          .Polaris-Card__Section {
+            padding-top: 7px;
+          }
+        `}
+      </style>
+    </IdeaContainer>
   );
 }
 
@@ -51,7 +59,6 @@ class IdeaContainer extends React.Component {
           key={idea.id}
           id={idea.id}
           generation={0}
-          layer={0}
           title={idea.title}
           content={idea.content}
           childCount={this.childCounts[idea.id]}
@@ -71,6 +78,7 @@ class IdeaContainer extends React.Component {
       const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId}`;
       const res = await fetch(pageRequest);
       const newIdeas = await res.json();
+
       let newCards = [];
 
       generation += 1;
@@ -81,7 +89,6 @@ class IdeaContainer extends React.Component {
             key={idea.id}
             id={idea.id}
             generation={generation}
-            layer={0}
             title={idea.title}
             content={idea.content}
             childCount={newIdeas.childCounts[idea.id]}
@@ -97,7 +104,9 @@ class IdeaContainer extends React.Component {
         this.state.cards.findIndex(element => element.props.id === parentId);
 
       let cardArr = this.state.cards;
+      cardArr.splice(insertIndex, 0, ...newCards);
 
+      console.log(cardArr);
       this.setState({ cards: cardArr });
     }
   };
@@ -109,24 +118,26 @@ class IdeaContainer extends React.Component {
 
 function IdeaCardWithButton(props) {
   const firstLayer = props.generation * 32;
-  const secondLayer = 32;
-  const leftMarginCard = ((firstLayer + secondLayer) / 16).toString() + "em";
-  const leftMarginImg = ((firstLayer + secondLayer) / 16).toString() + "em";
+  const secondLayer = 48;
+  //  const leftMarginCard = ((firstLayer + secondLayer) / 16).toString() + "em";
+  const layerImg = (firstLayer / 16).toString() + "em";
+  const widthImg = (secondLayer / 16).toString() + "em";
 
   return (
     <Layout.Section>
-      <IdeaCardMenu width={leftMarginImg} layer={firstLayer} />
+      <div style={{ display: "flex" }}>
+        <IdeaCardMenu layer={layerImg} width={widthImg} />
 
-      <IdeaCard
-        layer={leftMarginCard}
-        title={props.title}
-        content={props.content}
-      />
-
+        <IdeaCard
+          //        layer={leftMarginCard}
+          title={props.title}
+          content={props.content}
+        />
+      </div>
       <IdeaCardButton
         id={props.id}
         generation={props.generation}
-        layer={leftMarginCard}
+        layer={layerImg}
         childCount={props.childCount}
         onClick={props.onClick}
       />
@@ -135,14 +146,15 @@ function IdeaCardWithButton(props) {
 }
 function IdeaCardMenu(props) {
   const likeUrlFirst =
-    "https://cdn.shopify.com/s/files/1/0279/3406/4780/files/likenew1.png?v=1579988770";
+    "https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew1.png?v=1580691867";
   const likeUrlSecond =
-    "https://cdn.shopify.com/s/files/1/0279/3406/4780/files/likenew2.png?v=1579987137";
-  const likeUrlThird = "";
+    "https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew2.png?v=1580691867";
+  const likeUrlThird =
+    "https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew3.png?v=1580691867";
   const commentUrlFirst =
-    "https://cdn.shopify.com/s/files/1/0279/3406/4780/files/commentnew1.png?v=1579987153";
+    "https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew1.png?v=1580691867";
   const commentUrlSecond =
-    "https://cdn.shopify.com/s/files/1/0279/3406/4780/files/commentnew2.png?v=1579987137";
+    "https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew2.png?v=1580691867";
 
   const [isMouseInsideLike, setIsMouseInsideLike] = useState(false);
   const [isMouseInsideComment, setIsMouseInsideComment] = useState(false);
@@ -232,17 +244,10 @@ function IdeaCardMenuImg(props) {
 }
 
 function IdeaCard(props) {
-  const styles = { marginLeft: props.layer };
+  //  const styles = { marginLeft: props.layer };
 
   return (
-    <div style={styles}>
-      <style global jsx>
-        {`
-          .Polaris-Card__Section {
-            padding-top: 7px;
-          }
-        `}
-      </style>
+    <div style={{ width: "100%" }}>
       <Card
         sectioned
         title={props.title}
