@@ -22,12 +22,14 @@ Index.getInitialProps = async ({ req, query }) => {
   return json;
 };
 
-function Index({ childIdeas, childCounts /*likeCounts*/ }) {
+function Index({ childIdeas, childCounts, likeCounts }) {
+  const isLoggedIn = false;
   return (
     <IdeaContainer
       parentIdeas={childIdeas}
       childCounts={childCounts}
-    //      likeCounts={likeCounts}
+      likeCounts={likeCounts}
+      isLoggedIn={isLoggedIn}
     >
       <style global jsx>
         {`
@@ -47,6 +49,7 @@ class IdeaContainer extends React.Component {
     this.updateCards = this.updateCards.bind(this);
     this.parentIdeas = props.parentIdeas;
     this.childCounts = props.childCounts;
+    this.isLoggedIn = props.isLoggedIn;
     this.state = { cards: this.initializeCards() };
   }
 
@@ -62,6 +65,8 @@ class IdeaContainer extends React.Component {
           title={idea.title}
           content={idea.content}
           childCount={this.childCounts[idea.id]}
+          likeCount={this.likeCounts[idea.id]}
+          isLoggedIn={this.isLoggedIn}
           onClick={this.updateCards}
         />
       );
@@ -92,6 +97,8 @@ class IdeaContainer extends React.Component {
             title={idea.title}
             content={idea.content}
             childCount={newIdeas.childCounts[idea.id]}
+            likeCount={newIdeas.likeCounts[idea.id]}
+            isLoggedIn={this.isLoggedIn}
             onClick={this.updateCards}
           />
         );
@@ -117,27 +124,32 @@ class IdeaContainer extends React.Component {
 }
 
 function IdeaCardWithButton(props) {
-  const firstLayer = props.generation * 32;
-  const secondLayer = 48;
-  //  const leftMarginCard = ((firstLayer + secondLayer) / 16).toString() + "em";
-  const layerImg = (firstLayer / 16).toString() + "em";
-  const widthImg = (secondLayer / 16).toString() + "em";
+  const firstLayer = (props.generation * 3).toString() + "em";
+  const secondLayer = "3em";
+  const [likeCount, setLikeCount] = useState(props.likeCount);
+
+  const handleLikeClick = isLiked => {
+    if (props.isLoggedIn) {
+      if (!isLiked) setLikeCount(likeCount++);
+      else setLikeCount(likeCount--);
+    } else {
+    }
+  };
 
   return (
     <Layout.Section>
       <div style={{ display: "flex" }}>
-        <IdeaCardMenu layer={layerImg} width={widthImg} />
-
-        <IdeaCard
-          //        layer={leftMarginCard}
-          title={props.title}
-          content={props.content}
+        <IdeaCardMenu
+          layer={firstLayer}
+          width={secondLayer}
+          handleLikeClick={handleLikeClick}
         />
+        <IdeaCard title={props.title} content={props.content} />
       </div>
       <IdeaCardButton
         id={props.id}
         generation={props.generation}
-        layer={layerImg}
+        layer={firstLayer}
         childCount={props.childCount}
         onClick={props.onClick}
       />
