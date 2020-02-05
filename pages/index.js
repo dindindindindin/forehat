@@ -22,19 +22,25 @@ Index.getInitialProps = async ({ req, query }) => {
 	return json;
 };
 
-function Index({ childIdeas, childCounts, likeCounts }) {
+function Index({ childIdeas, childCounts, likeCounts, userLikes }) {
 	const isLoggedIn = false;
+	const loggedInUserId = "";
 	return (
 		<IdeaContainer
 			parentIdeas={childIdeas}
 			childCounts={childCounts}
 			likeCounts={likeCounts}
+			userLikes={userLikes}
 			isLoggedIn={isLoggedIn}
+			loggedInUserId={loggedInUserId}
 		>
 			<style global jsx>
 				{`
 					.Polaris-Card__Section {
 						padding-top: 7px;
+					}
+					.Like-Button-Div:hover {
+						background-color: black;
 					}
 				`}
 			</style>
@@ -49,7 +55,9 @@ class IdeaContainer extends React.Component {
 		this.updateCards = this.updateCards.bind(this);
 		this.parentIdeas = props.parentIdeas;
 		this.childCounts = props.childCounts;
+		this.userLikes = props.userLikes;
 		this.isLoggedIn = props.isLoggedIn;
+		this.loggedInUserId = props.loggedInUserId;
 		this.state = { cards: this.initializeCards() };
 	}
 
@@ -67,6 +75,8 @@ class IdeaContainer extends React.Component {
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
 					isLoggedIn={this.isLoggedIn}
+					isLiked={this.userLikes[idea.id]}
+					loggedInUserId={this.loggedInUserId}
 					onClick={this.updateCards}
 				/>
 			);
@@ -99,6 +109,8 @@ class IdeaContainer extends React.Component {
 						childCount={newIdeas.childCounts[idea.id]}
 						likeCount={newIdeas.likeCounts[idea.id]}
 						isLoggedIn={this.isLoggedIn}
+						isLiked={this.userLikes[idea.id]}
+						loggedInUserId={this.loggedInUserId}
 						onClick={this.updateCards}
 					/>
 				);
@@ -130,25 +142,49 @@ function IdeaCardWithButton(props) {
 	const secondLayer = "3em";
 	const [likeCount, setLikeCount] = useState(props.likeCount);
 
-	const handleLikeClick = isLiked => {
+	const [isLiked, setIsLiked] = useState(() => {
+		if (props.isLiked === true) {
+			return true;
+		} else return false;
+	});
+
+	const handleLikeClick = async () => {
 		if (props.isLoggedIn) {
-			if (!isLiked) setLikeCount(likeCount++);
-			else setLikeCount(likeCount--);
+			if (!isLiked) {
+				const protocol = location.protocol;
+				const host = location.host;
+				const pageRequest = `${protocol}//${host}/api/ideas/addLike?idea=${props.id}&user=${props.loggedInUserId}`;
+				await fetch(pageRequest);
+				setLikeCount(likeCount++);
+				setIsLiked(true);
+			} else {
+				const protocol = location.protocol;
+				const host = location.host;
+				const pageRequest = `${protocol}//${host}/api/ideas/removeLike?idea=${props.id}&user=${props.loggedInUserId}`;
+				await fetch(pageRequest);
+				setLikeCount(likeCount--);
+				setIsLiked(false);
+			}
 		} else {
+			//login window opens
 		}
 	};
 
 	return (
 		<Layout.Section>
 			<div style={{ display: "flex" }}>
-				<IdeaCardMenu
+				<IdeaCardLeftMenu
 					layer={firstLayer}
 					width={secondLayer}
+					isLiked={props.isLiked}
 					handleLikeClick={handleLikeClick}
 				/>
-				<IdeaCard title={props.title} content={props.content} />
+				<div>
+					<IdeaCard title={props.title} content={props.content} />
+					<IdeaCardFooterMenu />
+				</div>
 			</div>
-			<IdeaCardButton
+			<IdeaCardContributionsButton
 				id={props.id}
 				generation={props.generation}
 				layer={firstLayer}
@@ -158,29 +194,27 @@ function IdeaCardWithButton(props) {
 		</Layout.Section>
 	);
 }
-function IdeaCardMenu(props) {
+function IdeaCardLeftMenu(props) {
 	const likeUrlFirst =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew1.png?v=1580691867";
 	const likeUrlSecond =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew2.png?v=1580691867";
-	const likeUrlThird =
-		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew3.png?v=1580691867";
+	//	const likeUrlThird =
+	//	"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew3.png?v=1580691867";
 	const commentUrlFirst =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew1.png?v=1580691867";
-	const commentUrlSecond =
-		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew2.png?v=1580691867";
+	//	const commentUrlSecond =
+	//	"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew2.png?v=1580691867";
 
-	const [isMouseInsideLike, setIsMouseInsideLike] = useState(false);
-	const [isMouseInsideComment, setIsMouseInsideComment] = useState(false);
+	//	const [isMouseInsideLike, setIsMouseInsideLike] = useState(false);
+	//	const [isMouseInsideComment, setIsMouseInsideComment] = useState(false);
 
-	const handleEnter = isLike => {
+	/*	const handleEnter = isLike => {
 		isLike ? setIsMouseInsideLike(true) : setIsMouseInsideComment(true);
 	};
 	const handleLeave = isLike => {
 		isLike ? setIsMouseInsideLike(false) : setIsMouseInsideComment(false);
-	};
-
-	const handleLoggedInClick = () => {};
+	};*/
 
 	return (
 		<div
@@ -189,11 +223,21 @@ function IdeaCardMenu(props) {
 				marginLeft: props.layer
 			}}
 		>
-			<div>
-				{isMouseInsideLike ? (
+			<div className={"divLikeButton"}>
+				{!props.isLiked ? (
+					<IdeaCardLeftMenuImg
+						imageUrl={likeUrlFirst}
+						handleLikeClick={props.handleLikeClick}
+					/>
+				) : (
+					<IdeaCardLeftMenuImg
+						imageUrl={likeUrlSecond}
+						handleLikeClick={props.handleLikeClick}
+					/>
+				)}
+				{/*				{isMouseInsideLike ? (
 					<IdeaCardMenuImg
 						isLike={true}
-						link={"#"}
 						imageUrl={likeUrlSecond}
 						handleEnter={handleEnter}
 						handleLeave={handleLeave}
@@ -207,9 +251,9 @@ function IdeaCardMenu(props) {
 						handleLeave={handleLeave}
 						marginBottom={10}
 					/>
-				)}
+				)}*/}
 			</div>
-			<div>
+			{/*			<div>
 				{isMouseInsideComment ? (
 					<IdeaCardMenuImg
 						isLike={false}
@@ -227,29 +271,32 @@ function IdeaCardMenu(props) {
 						marginBottom={0}
 					/>
 				)}
-			</div>
+			</div>*/}
 		</div>
 	);
 }
 
-function IdeaCardMenuImg(props) {
+function IdeaCardLeftMenuImg(props) {
 	return (
 		<a href="#">
 			<img
 				src={props.imageUrl}
 				alt="like image"
-				onMouseEnter={() => {
+				/*				onMouseEnter={() => {
 					return props.handleEnter(props.isLike);
 				}}
 				onMouseLeave={() => {
 					return props.handleLeave(props.isLike);
+				}}*/
+				onClick={() => {
+					props.handleLikeClick();
 				}}
 				style={{
 					width: "80%",
 					height: "auto",
 					marginLeft: "auto",
 					marginRight: "auto",
-					marginBottom: props.marginBottom,
+					//					marginBottom: props.marginBottom,
 					display: "block"
 				}}
 			></img>
@@ -273,7 +320,9 @@ function IdeaCard(props) {
 	);
 }
 
-function IdeaCardButton(props) {
+function IdeaCardFooterMenu(props) {}
+
+function IdeaCardContributionsButton(props) {
 	let cssDisplay = "";
 	if (props.childCount === 0) cssDisplay = "none";
 	else cssDisplay = "flex";
