@@ -31,7 +31,6 @@ exports.up = function(db, callback) {
 				primaryKey: true,
 				unsigned: true,
 				notNull: true,
-				autoIncrement: true,
 				length: 1
 			},
 			type: { type: "string", length: 20 }

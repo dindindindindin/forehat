@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
 	Card,
 	Button,
-	Stack,
 	Layout,
 	TextContainer,
-	Henading
+	TextField
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
 import { render } from "react-dom";
@@ -39,9 +38,6 @@ function Index({ childIdeas, childCounts, likeCounts, userLikes }) {
 					.Polaris-Card__Section {
 						padding-top: 7px;
 					}
-					.Like-Button-Div:hover {
-						background-color: black;
-					}
 				`}
 			</style>
 		</IdeaContainer>
@@ -66,7 +62,7 @@ class IdeaContainer extends React.Component {
 
 		this.parentIdeas.map(idea => {
 			initialCards.push(
-				<IdeaCardWithButton
+				<IdeaWrapper
 					key={idea.id}
 					id={idea.id}
 					generation={0}
@@ -77,7 +73,7 @@ class IdeaContainer extends React.Component {
 					isLoggedIn={this.isLoggedIn}
 					isLiked={this.userLikes[idea.id]}
 					loggedInUserId={this.loggedInUserId}
-					onClick={this.updateCards}
+					handleContributionsClick={this.updateCards}
 				/>
 			);
 		});
@@ -100,7 +96,7 @@ class IdeaContainer extends React.Component {
 
 			newIdeas.childIdeas.map(idea => {
 				newCards.push(
-					<IdeaCardWithButton
+					<IdeaWrapper
 						key={idea.id}
 						id={idea.id}
 						generation={generation}
@@ -111,7 +107,7 @@ class IdeaContainer extends React.Component {
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
 						loggedInUserId={this.loggedInUserId}
-						onClick={this.updateCards}
+						handleContributionsClick={this.updateCards}
 					/>
 				);
 			});
@@ -137,7 +133,7 @@ class IdeaContainer extends React.Component {
 	}
 }
 
-function IdeaCardWithButton(props) {
+function IdeaWrapper(props) {
 	const firstLayer = (props.generation * 3).toString() + "em";
 	const secondLayer = "3em";
 	const [likeCount, setLikeCount] = useState(props.likeCount);
@@ -173,48 +169,33 @@ function IdeaCardWithButton(props) {
 	return (
 		<Layout.Section>
 			<div style={{ display: "flex" }}>
-				<IdeaCardLeftMenu
+				<LeftMenu
 					layer={firstLayer}
 					width={secondLayer}
 					isLiked={props.isLiked}
 					handleLikeClick={handleLikeClick}
+					likeCount={likeCount}
 				/>
-				<div>
-					<IdeaCard title={props.title} content={props.content} />
-					<IdeaCardFooterMenu />
-				</div>
+
+				<IdeaCard title={props.title} content={props.content} />
 			</div>
-			<IdeaCardContributionsButton
+			<ContributionsButton
 				id={props.id}
 				generation={props.generation}
 				layer={firstLayer}
 				childCount={props.childCount}
-				onClick={props.onClick}
+				handleContributionsClick={props.handleContributionsClick}
 			/>
 		</Layout.Section>
 	);
 }
-function IdeaCardLeftMenu(props) {
-	const likeUrlFirst =
+function LeftMenu(props) {
+	const urlLike =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew1.png?v=1580691867";
-	const likeUrlSecond =
+	const urlLiked =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew2.png?v=1580691867";
-	//	const likeUrlThird =
-	//	"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew3.png?v=1580691867";
-	const commentUrlFirst =
+	const urlComment =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew1.png?v=1580691867";
-	//	const commentUrlSecond =
-	//	"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew2.png?v=1580691867";
-
-	//	const [isMouseInsideLike, setIsMouseInsideLike] = useState(false);
-	//	const [isMouseInsideComment, setIsMouseInsideComment] = useState(false);
-
-	/*	const handleEnter = isLike => {
-		isLike ? setIsMouseInsideLike(true) : setIsMouseInsideComment(true);
-	};
-	const handleLeave = isLike => {
-		isLike ? setIsMouseInsideLike(false) : setIsMouseInsideComment(false);
-	};*/
 
 	return (
 		<div
@@ -223,71 +204,38 @@ function IdeaCardLeftMenu(props) {
 				marginLeft: props.layer
 			}}
 		>
-			<div className={"divLikeButton"}>
+			<div className={"Like-Button-Div"}>
 				{!props.isLiked ? (
-					<IdeaCardLeftMenuImg
-						imageUrl={likeUrlFirst}
+					<LeftMenuLikeImg
+						imageUrl={urlLike}
 						handleLikeClick={props.handleLikeClick}
 					/>
 				) : (
-					<IdeaCardLeftMenuImg
-						imageUrl={likeUrlSecond}
+					<LeftMenuLikeImg
+						imageUrl={urlLiked}
 						handleLikeClick={props.handleLikeClick}
 					/>
 				)}
-				{/*				{isMouseInsideLike ? (
-					<IdeaCardMenuImg
-						isLike={true}
-						imageUrl={likeUrlSecond}
-						handleEnter={handleEnter}
-						handleLeave={handleLeave}
-						marginBottom={10}
-					/>
-				) : (
-					<IdeaCardMenuImg
-						isLike={true}
-						imageUrl={likeUrlFirst}
-						handleEnter={handleEnter}
-						handleLeave={handleLeave}
-						marginBottom={10}
-					/>
-				)}*/}
 			</div>
-			{/*			<div>
-				{isMouseInsideComment ? (
-					<IdeaCardMenuImg
-						isLike={false}
-						imageUrl={commentUrlSecond}
-						handleEnter={handleEnter}
-						handleLeave={handleLeave}
-						marginBottom={0}
-					/>
-				) : (
-					<IdeaCardMenuImg
-						isLike={false}
-						imageUrl={commentUrlFirst}
-						handleEnter={handleEnter}
-						handleLeave={handleLeave}
-						marginBottom={0}
-					/>
-				)}
-			</div>*/}
+			<LeftMenuLikeCount likeCount={props.likeCount} />
+
+			<style jsx>
+				{`
+					.Like-Button-Div:hover {
+						background-color: grey;
+					}
+				`}
+			</style>
 		</div>
 	);
 }
 
-function IdeaCardLeftMenuImg(props) {
+function LeftMenuLikeImg(props) {
 	return (
 		<a href="#">
 			<img
 				src={props.imageUrl}
 				alt="like image"
-				/*				onMouseEnter={() => {
-					return props.handleEnter(props.isLike);
-				}}
-				onMouseLeave={() => {
-					return props.handleLeave(props.isLike);
-				}}*/
 				onClick={() => {
 					props.handleLikeClick();
 				}}
@@ -295,34 +243,95 @@ function IdeaCardLeftMenuImg(props) {
 					width: "80%",
 					height: "auto",
 					marginLeft: "auto",
-					marginRight: "auto",
-					//					marginBottom: props.marginBottom,
-					display: "block"
+					marginRight: "auto"
 				}}
 			></img>
 		</a>
 	);
 }
 
+function LeftMenuLikeCount(props) {
+	return (
+		<div>
+			<p
+				style={{
+					width: "80%",
+					height: "auto",
+					marginLeft: "auto",
+					marginRight: "auto"
+				}}
+			>
+				{props.likeCount}
+			</p>
+		</div>
+	);
+}
+
 function IdeaCard(props) {
-	//  const styles = { marginLeft: props.layer };
+	//comment toggle
 
 	return (
 		<div style={{ width: "100%" }}>
-			<Card
-				sectioned
-				title={props.title}
-				actions={[{ content: "# sketches attached" }]}
-			>
-				<CollapsibleText content={props.content} />
+			<Card sectioned>
+				<CardCollapsibleText
+					heading={props.heading}
+					content={props.content}
+				/>
+				<CardFooterMenu />
+				<CardContributeTextField />
 			</Card>
 		</div>
 	);
 }
 
-function IdeaCardFooterMenu(props) {}
+function CardCollapsibleText(props) {
+	return (
+		<div>
+			<TextContainer spacing="tight">
+				<ShowMore>{props.content}</ShowMore>
+			</TextContainer>
+		</div>
+	);
+}
 
-function IdeaCardContributionsButton(props) {
+function CardFooterMenu(props) {
+	return (
+		<div>
+			<CardContributeButton />
+			<CardMoreOptionsButton />
+		</div>
+	);
+}
+
+function CardContributeButton(props) {
+	return (
+		<div>
+			<Button
+				plain
+				outline="true"
+				onClick={() => {
+					props.handleContributeClick();
+				}}
+			>
+				Contribute
+			</Button>
+		</div>
+	);
+}
+
+function CardMoreOptionsButton(props) {
+	return <div></div>;
+}
+
+function CardContributeTextField(props) {
+	const [value, setValue] = useState("");
+
+	const handleChange = useCallback(newValue => setValue(newValue), []);
+
+	return <TextField value={value} onChange={handleChange} multiline={3} />;
+}
+
+function ContributionsButton(props) {
 	let cssDisplay = "";
 	if (props.childCount === 0) cssDisplay = "none";
 	else cssDisplay = "flex";
@@ -344,7 +353,7 @@ function IdeaCardContributionsButton(props) {
 				outline="true"
 				onClick={() => {
 					setIsVisible("none");
-					return props.onClick(
+					return props.handleContributionsClick(
 						props.id,
 						props.childCount,
 						props.generation
@@ -354,14 +363,6 @@ function IdeaCardContributionsButton(props) {
 				{props.childCount} child idea{plural + " \u21B4"}
 			</Button>
 		</div>
-	);
-}
-
-function CollapsibleText(props) {
-	return (
-		<TextContainer spacing="tight">
-			<ShowMore>{props.content}</ShowMore>
-		</TextContainer>
 	);
 }
 
