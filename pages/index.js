@@ -4,7 +4,9 @@ import {
 	Button,
 	Layout,
 	TextContainer,
-	TextField
+	TextField,
+	Form,
+	FormLayout
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
 import { render } from "react-dom";
@@ -49,6 +51,8 @@ class IdeaContainer extends React.Component {
 		super(props);
 		this.initializeCards = this.initializeCards.bind(this);
 		this.updateCards = this.updateCards.bind(this);
+		this.addCard = this.addCard.bind(this);
+		this.removeCard = this.removeCard.bind(this);
 		this.parentIdeas = props.parentIdeas;
 		this.childCounts = props.childCounts;
 		this.userLikes = props.userLikes;
@@ -73,6 +77,7 @@ class IdeaContainer extends React.Component {
 					isLoggedIn={this.isLoggedIn}
 					isLiked={this.userLikes[idea.id]}
 					loggedInUserId={this.loggedInUserId}
+					handleContributeTextSubmit={this.addCard}
 					handleContributionsClick={this.updateCards}
 				/>
 			);
@@ -107,6 +112,7 @@ class IdeaContainer extends React.Component {
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
 						loggedInUserId={this.loggedInUserId}
+						handleContributeTextSubmit={this.addCard}
 						handleContributionsClick={this.updateCards}
 					/>
 				);
@@ -126,6 +132,9 @@ class IdeaContainer extends React.Component {
 			console.log(cardArr);
 			this.setState({ cards: cardArr });
 		}
+
+		addCard = async () => {};
+		removeCard = async () => {};
 	};
 
 	render() {
@@ -177,7 +186,13 @@ function IdeaWrapper(props) {
 					likeCount={likeCount}
 				/>
 
-				<IdeaCard title={props.title} content={props.content} />
+				<IdeaCard
+					title={props.title}
+					content={props.content}
+					handleContributeTextSubmit={
+						props.handleContributeTextSubmit
+					}
+				/>
 			</div>
 			<ContributionsButton
 				id={props.id}
@@ -268,8 +283,14 @@ function LeftMenuLikeCount(props) {
 }
 
 function IdeaCard(props) {
-	//comment toggle
-
+	const [isContributing, setIsContributing] = useState(false);
+	const handleContributeClick = () => {
+		setIsContributing(true);
+	};
+	const handleContributeTextSubmit = () => {
+		setIsContributing(false);
+		props.handleContributeTextSubmit();
+	};
 	return (
 		<div style={{ width: "100%" }}>
 			<Card sectioned>
@@ -277,8 +298,11 @@ function IdeaCard(props) {
 					heading={props.heading}
 					content={props.content}
 				/>
-				<CardFooterMenu />
-				<CardContributeTextField />
+				<CardFooterMenu handleContributeClick={handleContributeClick} />
+				<CardContributeTextField
+					isActive={isContributing}
+					handleContributeTextSubmit={handleContributeTextSubmit}
+				/>
 			</Card>
 		</div>
 	);
@@ -297,7 +321,9 @@ function CardCollapsibleText(props) {
 function CardFooterMenu(props) {
 	return (
 		<div>
-			<CardContributeButton />
+			<CardContributeButton
+				handleContributeClick={props.handleContributeClick}
+			/>
 			<CardMoreOptionsButton />
 		</div>
 	);
@@ -324,11 +350,29 @@ function CardMoreOptionsButton(props) {
 }
 
 function CardContributeTextField(props) {
+	//	const [isActive, setIsActive] = useState(props.isActive);
+	// set display property(?) conditional
+
 	const [value, setValue] = useState("");
 
 	const handleChange = useCallback(newValue => setValue(newValue), []);
 
-	return <TextField value={value} onChange={handleChange} multiline={3} />;
+	return (
+		<Form
+			onSubmit={() => {
+				props.handleContributeTextSubmit();
+			}}
+		>
+			<FormLayout>
+				<TextField
+					value={value}
+					onChange={handleChange}
+					multiline={3}
+				/>
+				<Button>Save</Button>
+			</FormLayout>
+		</Form>
+	);
 }
 
 function ContributionsButton(props) {
