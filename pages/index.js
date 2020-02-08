@@ -129,12 +129,28 @@ class IdeaContainer extends React.Component {
 			let cardArr = this.state.cards;
 			cardArr.splice(insertIndex, 0, ...newCards);
 
-			console.log(cardArr);
 			this.setState({ cards: cardArr });
 		}
 
-		addCard = async () => {};
-		removeCard = async () => {};
+		addCard = async (heading, content, type, parentId, user, sketches) => {
+			const protocol = location.protocol;
+			const host = location.host;
+			const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId}`;
+			const res = await fetch(pageRequest);
+			const newIdea = await res.json();
+
+			const insertIndex =
+				1 +
+				this.state.cards.findIndex(
+					element => element.props.id === parentId
+				);
+
+			let cardArr = this.state.cards;
+			cardArr.splice(insertIndex, 0, newCard);
+
+			this.setState({ cards: cardArr });
+		};
+		removeCard = async _event => {};
 	};
 
 	render() {
@@ -145,15 +161,15 @@ class IdeaContainer extends React.Component {
 function IdeaWrapper(props) {
 	const firstLayer = (props.generation * 3).toString() + "em";
 	const secondLayer = "3em";
-	const [likeCount, setLikeCount] = useState(props.likeCount);
 
+	const [likeCount, setLikeCount] = useState(props.likeCount);
 	const [isLiked, setIsLiked] = useState(() => {
 		if (props.isLiked === true) {
 			return true;
 		} else return false;
 	});
 
-	const handleLikeClick = async () => {
+	const handleLikeClick = useCallback(async () => {
 		if (props.isLoggedIn) {
 			if (!isLiked) {
 				const protocol = location.protocol;
@@ -173,7 +189,7 @@ function IdeaWrapper(props) {
 		} else {
 			//login window opens
 		}
-	};
+	}, []);
 
 	return (
 		<Layout.Section>
@@ -204,13 +220,12 @@ function IdeaWrapper(props) {
 		</Layout.Section>
 	);
 }
+
 function LeftMenu(props) {
 	const urlLike =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew1.png?v=1580691867";
 	const urlLiked =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew2.png?v=1580691867";
-	const urlComment =
-		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/commentnew1.png?v=1580691867";
 
 	return (
 		<div
@@ -251,9 +266,7 @@ function LeftMenuLikeImg(props) {
 			<img
 				src={props.imageUrl}
 				alt="like image"
-				onClick={() => {
-					props.handleLikeClick();
-				}}
+				onClick={props.handleLikeClick}
 				style={{
 					width: "80%",
 					height: "auto",
@@ -284,13 +297,13 @@ function LeftMenuLikeCount(props) {
 
 function IdeaCard(props) {
 	const [isContributing, setIsContributing] = useState(false);
-	const handleContributeClick = () => {
+	const handleContributeClick = useCallback(() => {
 		setIsContributing(true);
-	};
-	const handleContributeTextSubmit = () => {
+	}, []);
+	const handleContributeTextSubmit = useCallback(_event => {
 		setIsContributing(false);
-		props.handleContributeTextSubmit();
-	};
+		props.handleContributeTextSubmit(_event.target.value);
+	}, []);
 	return (
 		<div style={{ width: "100%" }}>
 			<Card sectioned>
@@ -332,13 +345,7 @@ function CardFooterMenu(props) {
 function CardContributeButton(props) {
 	return (
 		<div>
-			<Button
-				plain
-				outline="true"
-				onClick={() => {
-					props.handleContributeClick();
-				}}
-			>
+			<Button plain outline="true" onClick={props.handleContributeClick}>
 				Contribute
 			</Button>
 		</div>
@@ -350,28 +357,26 @@ function CardMoreOptionsButton(props) {
 }
 
 function CardContributeTextField(props) {
-	//	const [isActive, setIsActive] = useState(props.isActive);
-	// set display property(?) conditional
+	let cssDisplay = "";
+	props.isActive ? (cssDisplay = "block") : (cssDisplay = "none");
 
 	const [value, setValue] = useState("");
 
 	const handleChange = useCallback(newValue => setValue(newValue), []);
 
 	return (
-		<Form
-			onSubmit={() => {
-				props.handleContributeTextSubmit();
-			}}
-		>
-			<FormLayout>
-				<TextField
-					value={value}
-					onChange={handleChange}
-					multiline={3}
-				/>
-				<Button>Save</Button>
-			</FormLayout>
-		</Form>
+		<div style={{ display: cssDisplay }}>
+			<Form onSubmit={props.handleContributeTextSubmit}>
+				<FormLayout>
+					<TextField
+						value={value}
+						onChange={handleChange}
+						multiline={3}
+					/>
+					<Button submit>Save</Button>
+				</FormLayout>
+			</Form>
+		</div>
 	);
 }
 
@@ -404,7 +409,7 @@ function ContributionsButton(props) {
 					);
 				}}
 			>
-				{props.childCount} child idea{plural + " \u21B4"}
+				{props.childCount} contribution{plural + " \u21B4"}
 			</Button>
 		</div>
 	);

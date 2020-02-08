@@ -49,7 +49,7 @@ exports.up = function(db, callback) {
 				autoIncrement: true,
 				length: 10
 			},
-			title: {
+			heading: {
 				type: "string",
 				length: 50
 			},
