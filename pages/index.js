@@ -20,20 +20,32 @@ Index.getInitialProps = async ({ req, query }) => {
 	const pageRequest = `${protocol}//${host}/api/ideas?parent=${null}`;
 	const res = await fetch(pageRequest);
 	const json = await res.json();
+
+	//const isLoggedIn
+	//const loggedInUserId
+	//const loggedInUsername
+
+	//make graphql call for customer username for each idea and return with json
+	// const ownerUsernames
 	return json;
 };
 
 function Index({ childIdeas, childCounts, likeCounts, userLikes }) {
 	const isLoggedIn = false;
 	const loggedInUserId = "";
+	const loggedInUsername = "";
+	const ownerUsernames = {};
+
 	return (
 		<IdeaContainer
 			parentIdeas={childIdeas}
 			childCounts={childCounts}
 			likeCounts={likeCounts}
 			userLikes={userLikes}
+			ownerUsernames={ownerUsernames}
 			isLoggedIn={isLoggedIn}
 			loggedInUserId={loggedInUserId}
+			loggedInUsername={loggedInUsername}
 		>
 			<style global jsx>
 				{`
@@ -56,8 +68,10 @@ class IdeaContainer extends React.Component {
 		this.parentIdeas = props.parentIdeas;
 		this.childCounts = props.childCounts;
 		this.userLikes = props.userLikes;
+		this.ownerUsernames = props.ownerUsernames;
 		this.isLoggedIn = props.isLoggedIn;
 		this.loggedInUserId = props.loggedInUserId;
+		this.loggedInUsername = props.loggedInUsername;
 		this.state = { cards: this.initializeCards() };
 	}
 
@@ -72,6 +86,8 @@ class IdeaContainer extends React.Component {
 					generation={0}
 					heading={idea.heading}
 					content={idea.content}
+					ownerId={idea.users_id}
+					ownerUsername={this.ownerUsernames[idea.id]}
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
 					isLoggedIn={this.isLoggedIn}
@@ -95,6 +111,8 @@ class IdeaContainer extends React.Component {
 			const res = await fetch(pageRequest);
 			const newIdeas = await res.json();
 
+			//make graphql call for customer username for each idea
+
 			let newCards = [];
 
 			generation++;
@@ -109,6 +127,8 @@ class IdeaContainer extends React.Component {
 						content={idea.content}
 						childCount={newIdeas.childCounts[idea.id]}
 						likeCount={newIdeas.likeCounts[idea.id]}
+						ownerId={idea.users_id}
+						ownerUsername={this.ownerUsernames[idea.id]}
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
 						loggedInUserId={this.loggedInUserId}
@@ -160,6 +180,8 @@ class IdeaContainer extends React.Component {
 						content={content}
 						childCount={0}
 						likeCount={0}
+						ownerId={this.loggedInUserId}
+						ownerUsername={this.loggedInUsername}
 						isLoggedIn={this.isLoggedIn}
 						isLiked={false}
 						loggedInUserId={this.loggedInUserId}
@@ -235,10 +257,13 @@ function IdeaWrapper(props) {
 
 				<IdeaCard
 					id={props.id}
+					type={props.type}
 					heading={props.heading}
 					content={props.content}
 					generation={props.generation}
 					childCount={props.childCount}
+					ownerUsername={props.ownerUsername}
+					loggedInUsername={props.loggedInUsername}
 					handleContributeTextSubmit={
 						props.handleContributeTextSubmit
 					}
@@ -349,6 +374,7 @@ function IdeaCard(props) {
 	return (
 		<div style={{ width: "100%" }}>
 			<Card sectioned>
+				<CardHeaderMenu type={props.type} owner={props.ownerUsername} />
 				<CardCollapsibleText
 					heading={props.heading}
 					content={props.content}
