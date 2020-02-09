@@ -133,12 +133,13 @@ class IdeaContainer extends React.Component {
 		}
 
 		addCard = async (
-			generation,
+			type,
 			heading,
 			content,
-			type,
 			parentId,
-			sketches
+			sketches,
+			generation,
+			childCount
 		) => {
 			const protocol = location.protocol;
 			const host = location.host;
@@ -170,6 +171,7 @@ class IdeaContainer extends React.Component {
 
 			const insertIndex =
 				1 +
+				childCount +
 				this.state.cards.findIndex(
 					element => element.props.id === parentId
 				);
@@ -235,6 +237,7 @@ function IdeaWrapper(props) {
 					id={props.id}
 					heading={props.heading}
 					content={props.content}
+					generation={props.generation}
 					childCount={props.childCount}
 					handleContributeTextSubmit={
 						props.handleContributeTextSubmit
@@ -331,10 +334,18 @@ function IdeaCard(props) {
 	const handleContributeClick = useCallback(() => {
 		setIsContributing(true);
 	}, []);
-	const handleContributeTextSubmit = useCallback(_event => {
+	const handleContributeTextSubmit = (type, heading, content, sketches) => {
 		setIsContributing(false);
-		props.handleContributeTextSubmit(_event.target.value);
-	}, []);
+		props.handleContributeTextSubmit(
+			type,
+			heading,
+			content,
+			props.id,
+			sketches,
+			props.generation,
+			props.childCount
+		);
+	};
 	return (
 		<div style={{ width: "100%" }}>
 			<Card sectioned>
@@ -345,7 +356,6 @@ function IdeaCard(props) {
 				<CardFooterMenu handleContributeClick={handleContributeClick} />
 				<CardContributePopup
 					isActive={isContributing}
-					childCount={props.childCount}
 					handleContributeTextSubmit={handleContributeTextSubmit}
 				/>
 			</Card>
@@ -395,12 +405,19 @@ function CardContributePopup(props) {
 	//start passing the needed vars
 	return (
 		<div style={{ display: cssDisplay }}>
-			<Form onSubmit={props.handleContributeTextSubmit}>
+			<Form
+				onSubmit={props.handleContributeTextSubmit(
+					heading,
+					content,
+					type,
+					sketches
+				)}
+			>
 				<FormLayout>
 					<CardContributeType />
 					<CardContributeHeading />
 					<CardContributeContent />
-					<CardContribute />
+					<CardContributeSketches />
 					<Button submit>Save</Button>
 				</FormLayout>
 			</Form>
