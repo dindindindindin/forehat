@@ -70,7 +70,7 @@ class IdeaContainer extends React.Component {
 					key={idea.id}
 					id={idea.id}
 					generation={0}
-					title={idea.title}
+					heading={idea.heading}
 					content={idea.content}
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
@@ -97,7 +97,7 @@ class IdeaContainer extends React.Component {
 
 			let newCards = [];
 
-			generation += 1;
+			generation++;
 
 			newIdeas.childIdeas.map(idea => {
 				newCards.push(
@@ -105,7 +105,7 @@ class IdeaContainer extends React.Component {
 						key={idea.id}
 						id={idea.id}
 						generation={generation}
-						title={idea.title}
+						heading={idea.title}
 						content={idea.content}
 						childCount={newIdeas.childCounts[idea.id]}
 						likeCount={newIdeas.likeCounts[idea.id]}
@@ -132,12 +132,40 @@ class IdeaContainer extends React.Component {
 			this.setState({ cards: cardArr });
 		}
 
-		addCard = async (heading, content, type, parentId, user, sketches) => {
+		addCard = async (
+			generation,
+			heading,
+			content,
+			type,
+			parentId,
+			sketches
+		) => {
 			const protocol = location.protocol;
 			const host = location.host;
-			const pageRequest = `${protocol}//${host}/api/ideas?parent=${parentId}`;
+			const pageRequest = `${protocol}//${host}/api/ideas/addIdea?heading=${heading}&content=${content}&type=${type}&parentId=${parentId}$sketches=${sketches}`;
 			const res = await fetch(pageRequest);
-			const newIdea = await res.json();
+			const ideaJson = await res.json();
+
+			generation++;
+
+			const newCard = () => {
+				return (
+					<IdeaWrapper
+						key={ideaJson.id}
+						id={ideaJson.id}
+						generation={generation}
+						heading={heading}
+						content={content}
+						childCount={0}
+						likeCount={0}
+						isLoggedIn={this.isLoggedIn}
+						isLiked={false}
+						loggedInUserId={this.loggedInUserId}
+						handleContributeTextSubmit={this.addCard}
+						handleContributionsClick={this.updateCards}
+					/>
+				);
+			};
 
 			const insertIndex =
 				1 +
@@ -203,7 +231,8 @@ function IdeaWrapper(props) {
 				/>
 
 				<IdeaCard
-					title={props.title}
+					id={props.id}
+					heading={props.heading}
 					content={props.content}
 					handleContributeTextSubmit={
 						props.handleContributeTextSubmit
@@ -312,7 +341,7 @@ function IdeaCard(props) {
 					content={props.content}
 				/>
 				<CardFooterMenu handleContributeClick={handleContributeClick} />
-				<CardContributeTextField
+				<CardContributePopup
 					isActive={isContributing}
 					handleContributeTextSubmit={handleContributeTextSubmit}
 				/>
@@ -356,28 +385,31 @@ function CardMoreOptionsButton(props) {
 	return <div></div>;
 }
 
-function CardContributeTextField(props) {
+function CardContributePopup(props) {
 	let cssDisplay = "";
 	props.isActive ? (cssDisplay = "block") : (cssDisplay = "none");
-
-	const [value, setValue] = useState("");
-
-	const handleChange = useCallback(newValue => setValue(newValue), []);
 
 	return (
 		<div style={{ display: cssDisplay }}>
 			<Form onSubmit={props.handleContributeTextSubmit}>
 				<FormLayout>
-					<TextField
-						value={value}
-						onChange={handleChange}
-						multiline={3}
-					/>
+					<CardContributeType />
+					<CardContributeHeading />
+					<CardContributeContent />
+					<CardContribute />
 					<Button submit>Save</Button>
 				</FormLayout>
 			</Form>
 		</div>
 	);
+}
+
+function CardContributeTextField(props) {
+	const [value, setValue] = useState("");
+
+	const handleChange = useCallback(newValue => setValue(newValue), []);
+
+	return <TextField value={value} onChange={handleChange} multiline={3} />;
 }
 
 function ContributionsButton(props) {
