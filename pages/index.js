@@ -146,6 +146,7 @@ class IdeaContainer extends React.Component {
 			const res = await fetch(pageRequest);
 			const ideaJson = await res.json();
 
+			console.log(ideaJson);
 			generation++;
 
 			const newCard = () => {
@@ -234,6 +235,7 @@ function IdeaWrapper(props) {
 					id={props.id}
 					heading={props.heading}
 					content={props.content}
+					childCount={props.childCount}
 					handleContributeTextSubmit={
 						props.handleContributeTextSubmit
 					}
@@ -343,6 +345,7 @@ function IdeaCard(props) {
 				<CardFooterMenu handleContributeClick={handleContributeClick} />
 				<CardContributePopup
 					isActive={isContributing}
+					childCount={props.childCount}
 					handleContributeTextSubmit={handleContributeTextSubmit}
 				/>
 			</Card>
@@ -389,6 +392,7 @@ function CardContributePopup(props) {
 	let cssDisplay = "";
 	props.isActive ? (cssDisplay = "block") : (cssDisplay = "none");
 
+	//start passing the needed vars
 	return (
 		<div style={{ display: cssDisplay }}>
 			<Form onSubmit={props.handleContributeTextSubmit}>
