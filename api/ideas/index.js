@@ -6,7 +6,6 @@ module.exports = async (req, res) => {
 	let childCounts = {};
 	let likeCounts = {};
 	let userLikes = {};
-	let idea;
 
 	if (req.query.user !== undefined) {
 		const userId = req.query.user.toString();
@@ -15,8 +14,11 @@ module.exports = async (req, res) => {
 			const parentId = parseInt(req.query.parent);
 
 			childIdeas = await db.query(
-				escape`SELECT * FROM ideas WHERE parent_id = ${parentId};`
+				escape`SELECT * FROM ideas INNER JOIN sketches ON sketches.ideas_id = ideas.id INNER JOIN users ON users.id = ideas.users_id INNER JOIN idea_types ON idea_types.id = ideas.idea_types_id WHERE parent_id = ${parentId};`
 			);
+
+			console.log(childIdeas);
+			//see the nested structure returned and accomodate the iterated vars
 
 			for (let i = 0; i < childIdeas.length; i++) {
 				const childsParentId = parseInt(childIdeas[i].parent_id);
@@ -42,7 +44,7 @@ module.exports = async (req, res) => {
 			}
 		} else {
 			childIdeas = await db.query(
-				escape`SELECT * FROM ideas WHERE parent_id IS NULL;`
+				escape`SELECT * FROM ideas INNER JOIN sketches ON sketches.ideas_id = ideas.id INNER JOIN users ON users.id = ideas.users_id INNER JOIN idea_types ON idea_types.id = ideas.idea_types_id WHERE parent_id IS NULL;`
 			);
 
 			for (let i = 0; i < childIdeas.length; i++) {
@@ -70,7 +72,7 @@ module.exports = async (req, res) => {
 			const parentId = parseInt(req.query.parent);
 
 			childIdeas = await db.query(
-				escape`SELECT * FROM ideas WHERE parent_id = ${parentId};`
+				escape`SELECT * FROM ideas INNER JOIN sketches ON sketches.ideas_id = ideas.id INNER JOIN users ON users.id = ideas.users_id INNER JOIN idea_types ON idea_types.id = ideas.idea_types_id WHERE parent_id = ${parentId};`
 			);
 
 			for (let i = 0; i < childIdeas.length; i++) {
@@ -90,7 +92,7 @@ module.exports = async (req, res) => {
 			}
 		} else {
 			childIdeas = await db.query(
-				escape`SELECT * FROM ideas WHERE parent_id IS NULL;`
+				escape`SELECT * FROM ideas INNER JOIN sketches ON sketches.ideas_id = ideas.id INNER JOIN users ON users.id = ideas.users_id INNER JOIN idea_types ON idea_types.id = ideas.idea_types_id WHERE parent_id IS NULL;`
 			);
 
 			for (let i = 0; i < childIdeas.length; i++) {

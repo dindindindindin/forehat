@@ -92,6 +92,9 @@ exports.up = function(db, callback) {
 					rules: { onDelete: "CASCADE", onUpdate: "RESTRICT" },
 					mapping: "id"
 				}
+			},
+			created_at: {
+				type: "datetime"
 			}
 		},
 		callback

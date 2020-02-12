@@ -6,7 +6,9 @@ import {
 	TextContainer,
 	TextField,
 	Form,
-	FormLayout
+	FormLayout,
+	Badge,
+	Caption
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
 import { render } from "react-dom";
@@ -84,10 +86,13 @@ class IdeaContainer extends React.Component {
 					key={idea.id}
 					id={idea.id}
 					generation={0}
+					type={idea.idea_types.type} //check the structure
 					heading={idea.heading}
 					content={idea.content}
-					ownerId={idea.users_id}
+					ownerId={idea.users.id} //check the structure
 					ownerUsername={this.ownerUsernames[idea.id]}
+					//createdAt=
+					sketches={idea.sketches} //revise
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
 					isLoggedIn={this.isLoggedIn}
@@ -117,18 +122,21 @@ class IdeaContainer extends React.Component {
 
 			generation++;
 
-			newIdeas.childIdeas.map(idea => {
+			newIdeas.childIdeas.map((idea, index) => {
 				newCards.push(
 					<IdeaWrapper
 						key={idea.id}
 						id={idea.id}
 						generation={generation}
+						type={idea.idea_types.type} //check the structure
 						heading={idea.title}
 						content={idea.content}
 						childCount={newIdeas.childCounts[idea.id]}
 						likeCount={newIdeas.likeCounts[idea.id]}
-						ownerId={idea.users_id}
+						ownerId={idea.users.id} //check the structure
 						ownerUsername={this.ownerUsernames[idea.id]}
+						//createdAt=
+						sketches={idea.sketches} //revise
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
 						loggedInUserId={this.loggedInUserId}
@@ -176,12 +184,15 @@ class IdeaContainer extends React.Component {
 						key={ideaJson.id}
 						id={ideaJson.id}
 						generation={generation}
+						type={type}
 						heading={heading}
 						content={content}
 						childCount={0}
 						likeCount={0}
 						ownerId={this.loggedInUserId}
 						ownerUsername={this.loggedInUsername}
+						//createdAt=
+						sketches={sketches}
 						isLoggedIn={this.isLoggedIn}
 						isLiked={false}
 						loggedInUserId={this.loggedInUserId}
@@ -262,6 +273,7 @@ function IdeaWrapper(props) {
 					content={props.content}
 					generation={props.generation}
 					childCount={props.childCount}
+					sketches={props.sketches}
 					ownerUsername={props.ownerUsername}
 					loggedInUsername={props.loggedInUsername}
 					handleContributeTextSubmit={
@@ -374,12 +386,17 @@ function IdeaCard(props) {
 	return (
 		<div style={{ width: "100%" }}>
 			<Card sectioned>
-				<CardHeaderMenu type={props.type} owner={props.ownerUsername} />
+				<CardHeader
+					type={props.type}
+					ownerUsername={props.ownerUsername}
+					createdAt={props.createdAt}
+					sketches={props.sketches}
+				/>
 				<CardCollapsibleText
 					heading={props.heading}
 					content={props.content}
 				/>
-				<CardFooterMenu handleContributeClick={handleContributeClick} />
+				<CardFooter handleContributeClick={handleContributeClick} />
 				<CardContributePopup
 					isActive={isContributing}
 					handleContributeTextSubmit={handleContributeTextSubmit}
@@ -388,6 +405,130 @@ function IdeaCard(props) {
 		</div>
 	);
 }
+
+function CardHeader(props) {
+	return (
+		<div style={{ display: "flex" }}>
+			<div style={{ width: "100%" }}>
+				<IdeaType type={props.type} />
+				<OwnerUsername ownerUsername={props.ownerUsername} />
+				<TimeElapsed createdAt={props.createdAt} />
+			</div>
+
+			<div>
+				<Sketches sketches={props.sketches} />
+			</div>
+		</div>
+	);
+}
+
+function IdeaType(props) {
+	let backgroundColor = "";
+
+	switch (props.type) {
+		case "Original Idea":
+			backgroundColor = "";
+			break;
+		case "Suggestion":
+			backgroundColor = "";
+			break;
+		case "Searching":
+			backgroundColor = "";
+			break;
+		case "Comment":
+			backgroundColor = "";
+	}
+
+	return (
+		<div style={{ backgroundColor: "#73AD21", borderRadius: "4px" }}>
+			<Caption>{props.type + " - "}</Caption>
+		</div>
+	);
+}
+
+function OwnerUsername(props) {
+	return (
+		<div>
+			<Caption>{props.ownerUsername + " - "}</Caption>
+		</div>
+	);
+}
+
+function TimeElapsed(props) {
+	const createdAt = new Date(
+		Date.parse(props.createdAt.replace(/[-]/g, "/"))
+	);
+	const now = new Date(Date.now);
+
+	const pluralize = timeDifference => {
+		if (timeDifference > 0) return "s";
+		else return "";
+	};
+
+	let timeDifference;
+	const [timeDisplay, setTimeDisplay] = useState("");
+
+	const handleTimelapse = useCallback(() => {
+		if (createdAt.getUTCFullYear !== now.getUTCFullYear) {
+			timeDifference = now.getUTCFullYear() - createdAt.getUTCFullYear();
+			setTimeDisplay(
+				timeDifference.toString() +
+					" year" +
+					pluralize(timeDifference) +
+					" ago"
+			);
+		} else if (createdAt.getUTCMonth !== now.getUTCMonth) {
+			timeDifference = now.getUTCMonth() - createdAt.getUTCMonth();
+			setTimeDisplay(
+				timeDifference.toString() +
+					" month" +
+					pluralize(timeDifference) +
+					" ago"
+			);
+		} else if (createdAt.getUTCDay !== now.getUTCDay) {
+			timeDifference = now.getUTCDay() - createdAt.getUTCDay();
+			setTimeDisplay(
+				timeDifference.toString() +
+					" day" +
+					pluralize(timeDifference) +
+					" ago"
+			);
+		} else if (createdAt.getUTCHours !== now.getUTCHours) {
+			timeDifference = now.getUTCHours() - createdAt.getUTCHours();
+			setTimeDisplay(
+				timeDifference.toString() +
+					" hour" +
+					pluralize(timeDifference) +
+					" ago"
+			);
+		} else if (createdAt.getUTCMinutes !== now.getUTCMinutes) {
+			timeDifference = now.getUTCMinutes() - createdAt.getUTCMinutes();
+			setTimeDisplay(
+				timeDifference.toString() +
+					" minute" +
+					pluralize(timeDifference) +
+					" ago"
+			);
+		} else {
+			setTimeDisplay("recently");
+		}
+	});
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			handleTimelapse();
+		}, 10000);
+		return () => clearInterval(interval);
+	}, []);
+
+	return (
+		<div>
+			<Caption>{timeDisplay}</Caption>
+		</div>
+	);
+}
+
+function Sketches(props) {}
 
 function CardCollapsibleText(props) {
 	return (
@@ -399,18 +540,18 @@ function CardCollapsibleText(props) {
 	);
 }
 
-function CardFooterMenu(props) {
+function CardFooter(props) {
 	return (
 		<div>
-			<CardContributeButton
+			<ContributeButton
 				handleContributeClick={props.handleContributeClick}
 			/>
-			<CardMoreOptionsButton />
+			<MoreOptionsButton />
 		</div>
 	);
 }
 
-function CardContributeButton(props) {
+function ContributeButton(props) {
 	return (
 		<div>
 			<Button plain outline="true" onClick={props.handleContributeClick}>
