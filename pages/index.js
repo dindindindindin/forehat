@@ -307,12 +307,12 @@ function LeftMenu(props) {
 		>
 			<div className={"Like-Button-Div"}>
 				{!props.isLiked ? (
-					<LeftMenuLikeImg
+					<LeftMenuLikeIcon
 						imageUrl={urlLike}
 						handleLikeClick={props.handleLikeClick}
 					/>
 				) : (
-					<LeftMenuLikeImg
+					<LeftMenuLikeIcon
 						imageUrl={urlLiked}
 						handleLikeClick={props.handleLikeClick}
 					/>
@@ -331,21 +331,19 @@ function LeftMenu(props) {
 	);
 }
 
-function LeftMenuLikeImg(props) {
+function LeftMenuLikeIcon(props) {
 	return (
-		<a href="#">
-			<img
-				src={props.imageUrl}
-				alt="like image"
-				onClick={props.handleLikeClick}
-				style={{
-					width: "80%",
-					height: "auto",
-					marginLeft: "auto",
-					marginRight: "auto"
-				}}
-			></img>
-		</a>
+		<img
+			src={props.imageUrl}
+			alt="like image"
+			onClick={props.handleLikeClick}
+			style={{
+				width: "80%",
+				height: "auto",
+				marginLeft: "auto",
+				marginRight: "auto"
+			}}
+		></img>
 	);
 }
 
@@ -414,8 +412,8 @@ function CardHeader(props) {
 				<OwnerUsername ownerUsername={props.ownerUsername} />
 				<TimeElapsed createdAt={props.createdAt} />
 			</div>
-
 			<div>
+				<SketchCount sketchCount={props.sketches.length} />
 				<Sketches sketches={props.sketches} />
 			</div>
 		</div>
@@ -528,7 +526,43 @@ function TimeElapsed(props) {
 	);
 }
 
-function Sketches(props) {}
+function SketchCount(props) {
+	let cssDisplay;
+	if (props.sketchCount < 1) cssDisplay = "none";
+	else cssDisplay = "block";
+
+	return <div style={{ display: cssDisplay }}>{props.sketchCount}</div>;
+}
+
+function SketchesButton(props) {
+	const handleSketchesClick = useCallback(() => {}, []);
+
+	const urlSketches = "";
+	return (
+		<div>
+			<div className="Sketches-Button-Div">
+				<img
+					src={urlSketches}
+					alt="sketches icon"
+					onClick={handleSketchesClick}
+					style={{
+						width: "80%",
+						height: "auto",
+						marginLeft: "auto",
+						marginRight: "auto"
+					}}
+				/>
+			</div>
+			<style jsx>
+				{`
+					.Sketches-Button-Div:hover {
+						background-color: grey;
+					}
+				`}
+			</style>
+		</div>
+	);
+}
 
 function CardCollapsibleText(props) {
 	return (
