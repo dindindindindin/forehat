@@ -91,7 +91,7 @@ class IdeaContainer extends React.Component {
 					content={idea.content}
 					ownerId={idea.users.id} //check the structure
 					ownerUsername={this.ownerUsernames[idea.id]}
-					//createdAt=
+					createdAt={idea.ideas.created_at}
 					sketches={idea.sketches} //revise
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
@@ -135,7 +135,7 @@ class IdeaContainer extends React.Component {
 						likeCount={newIdeas.likeCounts[idea.id]}
 						ownerId={idea.users.id} //check the structure
 						ownerUsername={this.ownerUsernames[idea.id]}
-						//createdAt=
+						createdAt={idea.ideas.created_at}
 						sketches={idea.sketches} //revise
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
@@ -191,7 +191,7 @@ class IdeaContainer extends React.Component {
 						likeCount={0}
 						ownerId={this.loggedInUserId}
 						ownerUsername={this.loggedInUsername}
-						//createdAt=
+						createdAt={ideaJson.created_at}
 						sketches={sketches}
 						isLoggedIn={this.isLoggedIn}
 						isLiked={false}
@@ -534,7 +534,9 @@ function CardCollapsibleText(props) {
 	return (
 		<div>
 			<TextContainer spacing="tight">
-				<ShowMore>{props.content}</ShowMore>
+				<ShowMore>
+					<strong>{props.heading}</strong> - {props.content}
+				</ShowMore>
 			</TextContainer>
 		</div>
 	);
@@ -561,7 +563,7 @@ function ContributeButton(props) {
 	);
 }
 
-function CardMoreOptionsButton(props) {
+function MoreOptionsButton(props) {
 	return <div></div>;
 }
 
