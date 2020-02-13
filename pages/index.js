@@ -11,6 +11,7 @@ import {
 	Caption
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
+import Carousel, { Modal as VisualRepsModal, ModalGateway } from "react-images";
 import { render } from "react-dom";
 import fetch from "isomorphic-unfetch";
 
@@ -92,7 +93,7 @@ class IdeaContainer extends React.Component {
 					ownerId={idea.users.id} //check the structure
 					ownerUsername={this.ownerUsernames[idea.id]}
 					createdAt={idea.ideas.created_at}
-					sketches={idea.sketches} //revise
+					visualRepUrls={idea.visualRepUrls} //revise
 					childCount={this.childCounts[idea.id]}
 					likeCount={this.likeCounts[idea.id]}
 					isLoggedIn={this.isLoggedIn}
@@ -136,7 +137,7 @@ class IdeaContainer extends React.Component {
 						ownerId={idea.users.id} //check the structure
 						ownerUsername={this.ownerUsernames[idea.id]}
 						createdAt={idea.ideas.created_at}
-						sketches={idea.sketches} //revise
+						visualRepUrls={idea.visualRepUrls} //revise
 						isLoggedIn={this.isLoggedIn}
 						isLiked={this.userLikes[idea.id]}
 						loggedInUserId={this.loggedInUserId}
@@ -165,13 +166,13 @@ class IdeaContainer extends React.Component {
 			heading,
 			content,
 			parentId,
-			sketches,
+			visualRepUrls,
 			generation,
 			childCount
 		) => {
 			const protocol = location.protocol;
 			const host = location.host;
-			const pageRequest = `${protocol}//${host}/api/ideas/addIdea?heading=${heading}&content=${content}&type=${type}&parentId=${parentId}$sketches=${sketches}`;
+			const pageRequest = `${protocol}//${host}/api/ideas/addIdea?heading=${heading}&content=${content}&type=${type}&parentId=${parentId}$visualRepUrls=${visualRepUrls}`;
 			const res = await fetch(pageRequest);
 			const ideaJson = await res.json();
 
@@ -192,7 +193,7 @@ class IdeaContainer extends React.Component {
 						ownerId={this.loggedInUserId}
 						ownerUsername={this.loggedInUsername}
 						createdAt={ideaJson.created_at}
-						sketches={sketches}
+						visualRepUrls={visualRepUrls}
 						isLoggedIn={this.isLoggedIn}
 						isLiked={false}
 						loggedInUserId={this.loggedInUserId}
@@ -273,7 +274,7 @@ function IdeaWrapper(props) {
 					content={props.content}
 					generation={props.generation}
 					childCount={props.childCount}
-					sketches={props.sketches}
+					visualRepUrls={props.visualRepUrls}
 					ownerUsername={props.ownerUsername}
 					loggedInUsername={props.loggedInUsername}
 					handleContributeTextSubmit={
@@ -293,9 +294,9 @@ function IdeaWrapper(props) {
 }
 
 function LeftMenu(props) {
-	const urlLike =
+	const likeUrl =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew1.png?v=1580691867";
-	const urlLiked =
+	const likedUrl =
 		"https://cdn.shopify.com/s/files/1/0326/3198/0163/files/likenew2.png?v=1580691867";
 
 	return (
@@ -308,12 +309,12 @@ function LeftMenu(props) {
 			<div className={"Like-Button-Div"}>
 				{!props.isLiked ? (
 					<LeftMenuLikeIcon
-						imageUrl={urlLike}
+						src={likeUrl}
 						handleLikeClick={props.handleLikeClick}
 					/>
 				) : (
 					<LeftMenuLikeIcon
-						imageUrl={urlLiked}
+						src={likedUrl}
 						handleLikeClick={props.handleLikeClick}
 					/>
 				)}
@@ -334,7 +335,7 @@ function LeftMenu(props) {
 function LeftMenuLikeIcon(props) {
 	return (
 		<img
-			src={props.imageUrl}
+			src={props.src}
 			alt="like image"
 			onClick={props.handleLikeClick}
 			style={{
@@ -369,14 +370,19 @@ function IdeaCard(props) {
 	const handleContributeClick = useCallback(() => {
 		setIsContributing(true);
 	}, []);
-	const handleContributeTextSubmit = (type, heading, content, sketches) => {
+	const handleContributeTextSubmit = (
+		type,
+		heading,
+		content,
+		visualRepUrls
+	) => {
 		setIsContributing(false);
 		props.handleContributeTextSubmit(
 			type,
 			heading,
 			content,
 			props.id,
-			sketches,
+			visualRepUrls,
 			props.generation,
 			props.childCount
 		);
@@ -388,7 +394,7 @@ function IdeaCard(props) {
 					type={props.type}
 					ownerUsername={props.ownerUsername}
 					createdAt={props.createdAt}
-					sketches={props.sketches}
+					visualRepUrls={props.visualRepUrls}
 				/>
 				<CardCollapsibleText
 					heading={props.heading}
@@ -413,8 +419,8 @@ function CardHeader(props) {
 				<TimeElapsed createdAt={props.createdAt} />
 			</div>
 			<div>
-				<SketchCount sketchCount={props.sketches.length} />
-				<Sketches sketches={props.sketches} />
+				<VisualRepCount visualRepCount={props.visualRepUrls.length} />
+				<VisualRepsButton visualRepUrls={props.visualRepUrls} />
 			</div>
 		</div>
 	);
@@ -526,25 +532,26 @@ function TimeElapsed(props) {
 	);
 }
 
-function SketchCount(props) {
+function VisualRepCount(props) {
 	let cssDisplay;
-	if (props.sketchCount < 1) cssDisplay = "none";
+	if (props.visualRepCount < 1) cssDisplay = "none";
 	else cssDisplay = "block";
 
-	return <div style={{ display: cssDisplay }}>{props.sketchCount}</div>;
+	return <div style={{ display: cssDisplay }}>{props.visualRepCount}</div>;
 }
 
-function SketchesButton(props) {
-	const handleSketchesClick = useCallback(() => {}, []);
+function VisualRepsButton(props) {
+	const [active, setActive] = useState(false);
+	const toggleModal = useCallback(active => setActive(!active), [active]);
 
-	const urlSketches = "";
+	const visualRepsButtonSrc = "";
 	return (
 		<div>
-			<div className="Sketches-Button-Div">
+			<div className="VisualReps-Button-Div">
 				<img
-					src={urlSketches}
-					alt="sketches icon"
-					onClick={handleSketchesClick}
+					src={visualRepsButtonSrc}
+					alt="visual representations button icon"
+					onClick={toggleModal}
 					style={{
 						width: "80%",
 						height: "auto",
@@ -553,14 +560,46 @@ function SketchesButton(props) {
 					}}
 				/>
 			</div>
+			<VisualRepOverlay
+				active={active}
+				visualRepUrls={props.visualRepUrls}
+				toggleModal={toggleModal}
+			/>
 			<style jsx>
 				{`
-					.Sketches-Button-Div:hover {
+					.VisualReps-Button-Div:hover {
 						background-color: grey;
 					}
 				`}
 			</style>
 		</div>
+	);
+}
+
+function VisualRepOverlay(props) {
+	let srcObjArr = [];
+	for (let i = 0; i < props.visualRepUrls.length; i++) {
+		srcObjArr[0] = { src: props.visualRepsUrls[i] };
+	}
+
+	/*	let visualRepsArr = props.visualRepUrls.map(visualRepUrl => {
+		return (
+			<img
+				src={visualRepUrl}
+				alt="idea visual representation"
+				style={{ width: "5em" }}
+			/>
+		);
+	});*/
+
+	return (
+		<ModalGateway>
+			{active ? (
+				<VisualRepsModal onClose={props.toggleModal}>
+					<Carousel views={srcObjArr} />
+				</VisualRepsModal>
+			) : null}
+		</ModalGateway>
 	);
 }
 
@@ -613,14 +652,14 @@ function CardContributePopup(props) {
 					heading,
 					content,
 					type,
-					sketches
+					visualRepUrls
 				)}
 			>
 				<FormLayout>
 					<CardContributeType />
 					<CardContributeHeading />
 					<CardContributeContent />
-					<CardContributeSketches />
+					<CardContributeVisualReps />
 					<Button submit>Save</Button>
 				</FormLayout>
 			</Form>
