@@ -401,10 +401,17 @@ function IdeaCard(props) {
 					content={props.content}
 				/>
 				<CardFooter handleContributeClick={handleContributeClick} />
-				<CardContributePopup
-					isActive={isContributing}
-					handleContributeTextSubmit={handleContributeTextSubmit}
-				/>
+				{isContributing ? (
+					<CardContributeForm
+						isActive={isContributing}
+						handleContributeTextSubmit={handleContributeTextSubmit}
+					/>
+				) : (
+					<CardContributeForm
+						isActive={isContributing}
+						handleContributeTextSubmit={handleContributeTextSubmit}
+					/>
+				)}
 			</Card>
 		</div>
 	);
@@ -533,7 +540,7 @@ function TimeElapsed(props) {
 }
 
 function VisualRepCount(props) {
-	let cssDisplay;
+	let cssDisplay; //revise
 	if (props.visualRepCount < 1) cssDisplay = "none";
 	else cssDisplay = "block";
 
@@ -560,7 +567,7 @@ function VisualRepsButton(props) {
 					}}
 				/>
 			</div>
-			<VisualRepOverlay
+			<VisualRepsOverlay
 				active={active}
 				visualRepUrls={props.visualRepUrls}
 				toggleModal={toggleModal}
@@ -576,25 +583,14 @@ function VisualRepsButton(props) {
 	);
 }
 
-function VisualRepOverlay(props) {
-	let srcObjArr = [];
-	for (let i = 0; i < props.visualRepUrls.length; i++) {
-		srcObjArr[0] = { src: props.visualRepsUrls[i] };
-	}
-
-	/*	let visualRepsArr = props.visualRepUrls.map(visualRepUrl => {
-		return (
-			<img
-				src={visualRepUrl}
-				alt="idea visual representation"
-				style={{ width: "5em" }}
-			/>
-		);
-	});*/
+function VisualRepsOverlay(props) {
+	let srcObjArr = props.visualRepUrls.map(visualRepUrl => {
+		return { src: visualRepUrl };
+	});
 
 	return (
 		<ModalGateway>
-			{active ? (
+			{props.active ? (
 				<VisualRepsModal onClose={props.toggleModal}>
 					<Carousel views={srcObjArr} />
 				</VisualRepsModal>
@@ -637,29 +633,34 @@ function ContributeButton(props) {
 }
 
 function MoreOptionsButton(props) {
-	return <div></div>;
+	return (
+		<div>
+			<p>more opts</p>
+		</div>
+	);
 }
 
-function CardContributePopup(props) {
-	let cssDisplay = "";
+function CardContributeForm(props) {
+	let cssDisplay = ""; //revise
 	props.isActive ? (cssDisplay = "block") : (cssDisplay = "none");
 
-	//start passing the needed vars
 	return (
 		<div style={{ display: cssDisplay }}>
 			<Form
-				onSubmit={props.handleContributeTextSubmit(
-					heading,
-					content,
-					type,
-					visualRepUrls
-				)}
+				onSubmit={_event =>
+					props.handleContributeTextSubmit(
+						heading, //revise
+						content,
+						type,
+						visualRepUrls
+					)
+				}
 			>
 				<FormLayout>
-					<CardContributeType />
-					<CardContributeHeading />
-					<CardContributeContent />
-					<CardContributeVisualReps />
+					<ContributeType />
+					<ContributeHeading />
+					<ContributeContent />
+					<ContributeVisualReps />
 					<Button submit>Save</Button>
 				</FormLayout>
 			</Form>
@@ -667,16 +668,20 @@ function CardContributePopup(props) {
 	);
 }
 
-function CardContributeTextField(props) {
+function ContributeType(props) {}
+function ContributeHeading(props) {}
+
+function ContributeContent(props) {
 	const [value, setValue] = useState("");
 
 	const handleChange = useCallback(newValue => setValue(newValue), []);
 
 	return <TextField value={value} onChange={handleChange} multiline={3} />;
 }
+function ContributeVisualReps(props) {}
 
 function ContributionsButton(props) {
-	let cssDisplay = "";
+	let cssDisplay = ""; //revise
 	if (props.childCount === 0) cssDisplay = "none";
 	else cssDisplay = "flex";
 
