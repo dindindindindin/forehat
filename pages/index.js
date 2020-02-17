@@ -1,5 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
+	Banner,
+	Stack,
+	Thumbnail,
+	List,
+	DropZone,
 	Card,
 	Button,
 	Layout,
@@ -8,7 +13,8 @@ import {
 	Form,
 	FormLayout,
 	Badge,
-	Caption
+	Caption,
+	Modal as ImageUploadModal
 } from "@shopify/polaris";
 import ShowMore from "react-show-more";
 import Carousel, { Modal as VisualRepsModal, ModalGateway } from "react-images";
@@ -401,17 +407,11 @@ function IdeaCard(props) {
 					content={props.content}
 				/>
 				<CardFooter handleContributeClick={handleContributeClick} />
-				{isContributing ? (
-					<CardContributeForm
-						isActive={isContributing}
-						handleContributeTextSubmit={handleContributeTextSubmit}
-					/>
-				) : (
-					<CardContributeForm
-						isActive={isContributing}
-						handleContributeTextSubmit={handleContributeTextSubmit}
-					/>
-				)}
+
+				<CardContributeForm
+					isContributing={isContributing}
+					handleContributeTextSubmit={handleContributeTextSubmit}
+				/>
 			</Card>
 		</div>
 	);
@@ -600,6 +600,7 @@ function VisualRepsOverlay(props) {
 }
 
 function CardCollapsibleText(props) {
+	//seperate head and content on showmore
 	return (
 		<div>
 			<TextContainer spacing="tight">
@@ -625,7 +626,12 @@ function CardFooter(props) {
 function ContributeButton(props) {
 	return (
 		<div>
-			<Button plain outline="true" onClick={props.handleContributeClick}>
+			<Button
+				plain
+				outline="true"
+				isParent={false}
+				onClick={props.handleContributeClick}
+			>
 				Contribute
 			</Button>
 		</div>
@@ -642,7 +648,7 @@ function MoreOptionsButton(props) {
 
 function CardContributeForm(props) {
 	let cssDisplay = ""; //revise
-	props.isActive ? (cssDisplay = "block") : (cssDisplay = "none");
+	props.isContributing ? (cssDisplay = "block") : (cssDisplay = "none");
 
 	return (
 		<div style={{ display: cssDisplay }}>
@@ -657,10 +663,10 @@ function CardContributeForm(props) {
 				}
 			>
 				<FormLayout>
-					<ContributeType />
+					<ContributeType isParent={props.isParent} />
 					<ContributeHeading />
 					<ContributeContent />
-					<ContributeVisualReps />
+					<ContributeVisualRepsButton />
 					<Button submit>Save</Button>
 				</FormLayout>
 			</Form>
@@ -668,17 +674,197 @@ function CardContributeForm(props) {
 	);
 }
 
-function ContributeType(props) {}
-function ContributeHeading(props) {}
+function ContributeType(props) {
+	const [boxArr, setBoxArr] = useState([]);
+	const [selected, setSelected] = useState("");
+
+	const handleSelection = type => {
+		setSelected(type);
+	};
+
+	return props.isParent
+		? setBoxArr([
+				//convert to stack?
+				<TypeBox
+					type={"Original Idea"}
+					selected
+					handleSelection={handleSelection}
+				/>,
+				<TypeBox
+					type={"Searching"}
+					selected
+					handleSelection={handleSelection}
+				/>,
+				<TypeBox type={"Suggestion"} disabled />,
+				<TypeBox type={"Comment"} disabled />
+		  ])
+		: setBoxArr([
+				<TypeBox
+					type={"Suggestion"}
+					selected
+					handleSelection={handleSelection}
+				/>,
+				<TypeBox
+					type={"Comment"}
+					selected
+					handleSelection={handleSelection}
+				/>,
+				<TypeBox
+					type={"Searching"}
+					selected
+					handleSelection={handleSelection}
+				/>,
+				<TypeBox type={"Original Idea"} disabled />
+		  ]);
+}
+
+function TypeBox(props) {
+	let explanation = "";
+	let cssHoverBorder = "";
+	let cssColor = "";
+	switch (props.type) {
+		case "Original Idea":
+			explanation = "original idea explanation";
+			cssHoverBorder = "1px solid blue";
+			cssColor = "blue";
+			break;
+		case "Suggestion":
+			explanation = "suggestion explanation";
+			cssHoverBorder = "1px solid green";
+			cssColor = "green";
+			break;
+		case "Comment":
+			explanation = "comment explanation";
+			cssHoverBorder = "1px solid purple";
+			cssColor = "purple";
+			break;
+		case "Searching":
+			explanation = "searching explanation";
+			cssHoverBorder = "1px solid yellow";
+			cssColor = "yellow";
+	}
+
+	let cssBorder = "";
+
+	if (props.selected === props.type) {
+		cssBorder = cssHoverBorder;
+	} else cssBorder = "grey";
+
+	return (
+		<div>
+			<div
+				className="Type-Box-Div"
+				style={{ width: "25%", border: cssBorder, color: cssColor }}
+				onClick={props.handleSelection(props.type)}
+			>
+				<div>
+					<p>{props.title}</p>
+				</div>
+				<div>
+					<p>{explanation}</p>
+				</div>
+			</div>
+			<style global jsx>
+				.Type-Box-Div:hover
+				{`
+					border: ${cssHoverBorder};
+				`}
+			</style>
+		</div>
+	);
+}
+function ContributeHeading(props) {
+	const [value, setValue] = useState("");
+
+	const handleChange = useCallback(newValue => setValue(newValue), []);
+
+	return <TextField value={value} onChange={handleChange} />; //add label
+}
 
 function ContributeContent(props) {
 	const [value, setValue] = useState("");
 
 	const handleChange = useCallback(newValue => setValue(newValue), []);
 
-	return <TextField value={value} onChange={handleChange} multiline={3} />;
+	return <TextField value={value} onChange={handleChange} multiline={3} />; //add label
 }
-function ContributeVisualReps(props) {}
+function ContributeVisualRepsButton(props) {
+	const [active, setActive] = useState(false);
+	const toggleActive = useCallback(active => {
+		setActive(!active);
+	}, []);
+	return (
+		<div>
+			<Button onClick={toggleActive}>Upload Visuals</Button>
+			<DropZoneModal active={active} toggleActive={toggleActive} />
+		</div>
+	);
+}
+function DropZoneModal(props) {
+	//continue for api call to upload (to assets?)
+	const [files, setFiles] = useState([]);
+	const [rejectedFiles, setRejectedFiles] = useState([]);
+	const hasError = rejectedFiles.length > 0;
+
+	const handleDrop = useCallback(
+		(_droppedFiles, acceptedFiles, rejectedFiles) => {
+			setFiles(files => [...files, ...acceptedFiles]);
+			setRejectedFiles(rejectedFiles);
+		},
+		[]
+	);
+
+	const fileUpload = !files.length && <DropZone.FileUpload />;
+	const uploadedFiles = files.length > 0 && (
+		<Stack vertical>
+			{files.map((file, index) => (
+				<Stack alignment="center" key={index}>
+					<Thumbnail
+						size="small"
+						alt={file.name}
+						source={window.URL.createObjectURL(file)}
+					/>
+					<div>
+						{file.name} <Caption>{file.size} bytes</Caption>
+					</div>
+				</Stack>
+			))}
+		</Stack>
+	);
+
+	const errorMessage = hasError && (
+		<Banner
+			title="The following images couldn’t be uploaded:"
+			status="critical"
+		>
+			<List type="bullet">
+				{rejectedFiles.map((file, index) => (
+					<List.Item key={index}>
+						{`"${file.name}" is not supported. File type must be .gif, .jpg, .png or .svg.`}
+					</List.Item>
+				))}
+			</List>
+		</Banner>
+	);
+
+	return (
+		<ImageUploadModal
+			large
+			open={props.active}
+			onClose={props.toggleActive}
+		>
+			<ImageUploadModal.Section>
+				<Stack vertical>
+					{errorMessage}
+					<DropZone accept="image/*" type="image" onDrop={handleDrop}>
+						{uploadedFiles}
+						{fileUpload}
+					</DropZone>
+				</Stack>
+			</ImageUploadModal.Section>
+		</ImageUploadModal>
+	);
+}
 
 function ContributionsButton(props) {
 	let cssDisplay = ""; //revise
